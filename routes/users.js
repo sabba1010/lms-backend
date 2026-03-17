@@ -32,4 +32,30 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
+router.put('/:id', async (req, res) => {
+  try {
+    const { name, email, bio, password } = req.body;
+    const user = await User.findById(req.params.id);
+
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    if (name) user.name = name;
+    if (email) user.email = email;
+    if (bio !== undefined) user.bio = bio;
+    if (password) user.password = password; // The pre-save hook in User model will handle hashing
+
+    await user.save();
+
+    const updatedUser = user.toObject();
+    delete updatedUser.password;
+
+    res.json({ message: 'Profile updated successfully', user: updatedUser });
+  } catch (err) {
+    if (err.code === 11000) {
+      return res.status(400).json({ error: 'Email already exists' });
+    }
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 module.exports = router;
