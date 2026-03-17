@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>SCORM 1.2 Test Course</title>
+<link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+<div class="card">
+  <h1>SCORM 1.2 Test Course</h1>
+  <p class="sub">Click Start to initialize, then Complete to submit your score.</p>
+  <div class="buttons">
+    <button class="btn-start" id="btnStart" onclick="doInitialize()">Start Course</button>
+    <button class="btn-complete" id="btnComplete" onclick="doComplete()" disabled>Complete Course</button>
+  </div>
+  <p id="status"></p>
+</div>
+<script src="script.js"></script>
+</body>
+</html>

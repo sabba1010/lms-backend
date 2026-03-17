@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<!--
+Single SCO content packaging example. SCORM 1.1.
+
+Provided by Rustici Software - http://www.scorm.com
+
+This example demonstrates the simplest possible manifest, containing just one SCO and 
+no metdata or sequencing information.
+-->
+
+<!--
+SCORM 1.1 uses a completely different packaging format than the rest of the versions.
+The content structure format file, CSF, is an XML file that can have any name and contains
+a very different structure than the imsmanifest.xml file. You will notice similar concepts however.
+"Block" is roughly equivilant to "item". And "sco" is roughly equilivant to "resource".
+-->
+<content>
+	<globalProperties>
+		<externalMetadata>
+			<source>ADL</source>
+			<model>ADL SCORM 1.1</model>
+		</externalMetadata>
+	</globalProperties>
+	<block id="B1">
+		<identification>
+			<title>Golf Explained - CP Single SCO</title>
+			<description>Example course demonstrating content packaging in SCORM 1.1.</description>
+			<labels>
+				<curricular>COURSE</curricular>
+			</labels>
+		</identification>
+		<sco id="S1">
+			<identification>
+			<title>Golf Explained</title>
+			<description>A primer on the basics of golf.</description>
+				<labels>
+					<curricular>SCO</curricular>
+				</labels>
+			</identification>
+			<launch>
+				<location><![CDATA[shared/launchpage.html]]></location>
+			</launch>
+		</sco>
+	</block>
+</content>
