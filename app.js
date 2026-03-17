@@ -54,6 +54,7 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/stats', require('./routes/stats'));
 app.use('/api/payments', require('./routes/payments'));
 app.use('/api/scorm', require('./routes/scorm'));
+app.use('/api/company', require('./routes/company'));
 
 // ── Error handlers ───────────────────────────────────────────────────────────
 app.use((req, res, next) => {
