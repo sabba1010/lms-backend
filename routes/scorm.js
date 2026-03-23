@@ -5,6 +5,7 @@ const path = require('path');
 const fs = require('fs');
 const AdmZip = require('adm-zip');
 const Course = require('../models/Course');
+const User = require('../models/User');
 
 // ── Multer config: store SCORM zips in /uploads ──────────────────────────────
 const storage = multer.diskStorage({
@@ -182,16 +183,22 @@ function findScormEntry(dir) {
 router.post('/complete', async (req, res) => {
   try {
     const { userId, courseId } = req.body;
+    console.log(`SCORM Completion Request received: User=${userId}, Course=${courseId}`);
+
     if (!userId || !courseId) {
       return res.status(400).json({ error: 'userId and courseId are required.' });
     }
 
+    // Convert to ObjectId to ensure correct matching in subdocuments
+    const uId = new mongoose.Types.ObjectId(userId);
+    const cId = new mongoose.Types.ObjectId(courseId);
+
     // Update the progress for the specific course in the user's enrolledCourses array
     const user = await User.findOneAndUpdate(
       { 
-        _id: userId, 
-        'enrolledCourses.courseId': courseId,
-        'enrolledCourses.progress': { $lt: 100 } // Only update if not already 100%
+        _id: uId, 
+        'enrolledCourses.courseId': cId,
+        'enrolledCourses.progress': { $lt: 100 }
       },
       { 
         $set: { 'enrolledCourses.$.progress': 100 } 
@@ -200,14 +207,15 @@ router.post('/complete', async (req, res) => {
     );
 
     if (!user) {
-      // Either user not found, not enrolled, or already at 100%
+      console.log('SCORM Completion: No update performed (already 100% or enrollment not found).');
       return res.json({ message: 'Progress already up to date or enrollment not found.', status: 'ignored' });
     }
 
+    console.log('SCORM Completion: Successfully updated database to 100%.');
     res.json({ message: 'Progress updated to 100%', status: 'updated' });
   } catch (err) {
     console.error('SCORM completion error:', err);
-    res.status(500).json({ error: 'Failed to update progress.' });
+    res.status(500).json({ error: 'Failed to update progress.', details: err.message });
   }
 });
 
