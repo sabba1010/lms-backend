@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Ultra Premium Course</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,Arial;background:#f6f9fc;color:#1e293b;display:flex;height:100vh}
+.sidebar{
+  width:300px;
+  background:#ffffff;
+  border-right:1px solid #e5e7eb;
+  padding:20px;
+}
+.logo{font-weight:700;font-size:18px;margin-bottom:20px}
+.bar{height:6px;background:#e2e8f0;border-radius:6px;overflow:hidden}
+.fill{height:6px;background:linear-gradient(90deg,#6366f1,#38bdf8);width:0%;transition:.4s}
+.lesson{padding:10px;border-radius:8px;margin-top:6px;background:#f1f5f9;cursor:pointer}
+.lesson.active{background:#6366f1;color:#fff}
+.content{flex:1;overflow:auto}
+.hero{
+  background:linear-gradient(135deg,#6366f1,#38bdf8);
+  color:#fff;
+  padding:40px;
+}
+.container{padding:40px}
+.card{
+  background:#fff;
+  border-radius:14px;
+  padding:30px;
+  box-shadow:0 10px 25px rgba(0,0,0,0.05);
+  margin-bottom:20px;
+}
+button{
+  padding:10px 18px;
+  border:none;
+  border-radius:8px;
+  margin-right:10px;
+  cursor:pointer;
+}
+.primary{background:#6366f1;color:#fff}
+.secondary{background:#e2e8f0}
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+<div class="logo">Ultra Course</div>
+
+<div id="progressText">0% COMPLETE</div>
+<div class="bar"><div id="bar" class="fill"></div></div>
+
+<div id="lessonList"></div>
+</div>
+
+<div class="content">
+<div class="hero">
+<h1 id="title"></h1>
+<p>Modern learning experience with clean UI</p>
+</div>
+
+<div class="container">
+<div class="card">
+<p id="text"></p>
+
+<button class="secondary" onclick="prev()">Prev</button>
+<button class="primary" onclick="next()">Next</button>
+</div>
+</div>
+</div>
+
+<script>
+let API = window.parent.API;
+let current = 1;
+
+const lessons = [
+{title:"Welcome", text:"Welcome to an ultra premium SCORM experience with hero UI."},
+{title:"Concept", text:"Learn core concepts with structured explanation."},
+{title:"Examples", text:"Explore real examples and case scenarios."},
+{title:"Deep Dive", text:"Advanced breakdown and understanding."},
+{title:"Finish", text:"Auto completion will trigger at 100%."}
+];
+
+const total = lessons.length;
+
+function render(){
+  const list=document.getElementById("lessonList");
+  list.innerHTML="";
+  lessons.forEach((l,i)=>{
+    const d=document.createElement("div");
+    d.className="lesson"+(i+1===current?" active":"");
+    d.innerText=(i+1)+". "+l.title;
+    d.onclick=()=>{current=i+1;update()};
+    list.appendChild(d);
+  });
+}
+
+function update(){
+  const l=lessons[current-1];
+  document.getElementById("title").innerText=l.title;
+  document.getElementById("text").innerText=l.text;
+
+  let p=Math.round((current/total)*100);
+  document.getElementById("progressText").innerText=p+"% COMPLETE";
+  document.getElementById("bar").style.width=p+"%";
+
+  render();
+
+  if(API){
+    API.LMSSetValue("cmi.core.lesson_location", current.toString());
+    API.LMSSetValue("cmi.suspend_data", JSON.stringify({lesson:current}));
+    API.LMSCommit("");
+  }
+
+  if(p===100 && API){
+    API.LMSSetValue("cmi.core.lesson_status","completed");
+    API.LMSCommit("");
+    API.LMSFinish("");
+  }
+}
+
+function next(){ if(current<total){current++;update()} }
+function prev(){ if(current>1){current--;update()} }
+
+function init(){
+  if(API){
+    API.LMSInitialize("");
+    let d=API.LMSGetValue("cmi.suspend_data");
+    if(d){
+      try{current=JSON.parse(d).lesson||1}catch(e){}
+    }
+  }
+  update();
+}
+
+window.onload=init;
+</script>
+
+</body>
+</html>
