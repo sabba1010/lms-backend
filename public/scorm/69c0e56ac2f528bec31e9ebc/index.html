@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Advanced SCORM</title>
+  <style>
+    body { margin:0; font-family: Arial; display:flex; }
+    .sidebar {
+      width: 250px;
+      background: #ff5a1f;
+      color: white;
+      padding: 20px;
+    }
+    .content {
+      flex:1;
+      padding: 30px;
+    }
+    .lesson { display:none; }
+    .active { display:block; }
+    .progress-bar {
+      height:6px;
+      background:#00000030;
+      margin-top:10px;
+    }
+    .progress-fill {
+      height:6px;
+      background:white;
+      width:0%;
+    }
+    button {
+      padding:10px 20px;
+      margin-top:20px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="sidebar">
+  <h2>Demo Course</h2>
+  <p id="progressText">0% COMPLETE</p>
+  <div class="progress-bar">
+    <div class="progress-fill" id="bar"></div>
+  </div>
+</div>
+
+<div class="content">
+  <div id="lesson1" class="lesson active">
+    <h2>Lesson 1</h2>
+    <p>This is a long text lesson explaining fundamentals. This course teaches key ideas with detailed examples. Continue reading to understand the basics clearly.</p>
+  </div>
+
+  <div id="lesson2" class="lesson">
+    <h2>Lesson 2</h2>
+    <p>This lesson covers advanced topics. You will learn deeper concepts and real-world applications with multiple explanations and examples.</p>
+  </div>
+
+  <div id="lesson3" class="lesson">
+    <h2>Lesson 3</h2>
+    <p>This final lesson summarizes everything. By completing this, you will understand the full course and be ready to finish.</p>
+  </div>
+
+  <button onclick="prev()">Prev</button>
+  <button onclick="next()">Next</button>
+  <button onclick="complete()">Complete</button>
+</div>
+
+<script>
+let API = window.parent.API;
+let current = 1;
+const total = 3;
+
+function updateUI(){
+  document.querySelectorAll('.lesson').forEach(l => l.classList.remove('active'));
+  document.getElementById('lesson'+current).classList.add('active');
+
+  let percent = Math.round((current/total)*100);
+  document.getElementById('progressText').innerText = percent + "% COMPLETE";
+  document.getElementById('bar').style.width = percent + "%";
+
+  if(API){
+    API.LMSSetValue("cmi.core.lesson_location", current.toString());
+    API.LMSSetValue("cmi.suspend_data", JSON.stringify({lesson:current}));
+    API.LMSCommit("");
+  }
+}
+
+function next(){
+  if(current < total){ current++; updateUI(); }
+}
+
+function prev(){
+  if(current > 1){ current--; updateUI(); }
+}
+
+function complete(){
+  if(API){
+    API.LMSSetValue("cmi.core.lesson_status","completed");
+    API.LMSCommit("");
+    API.LMSFinish("");
+    alert("Course Completed!");
+  }
+}
+
+function init(){
+  if(API){
+    API.LMSInitialize("");
+    let data = API.LMSGetValue("cmi.suspend_data");
+    if(data){
+      try{
+        current = JSON.parse(data).lesson || 1;
+      }catch(e){}
+    }
+  }
+  updateUI();
+}
+
+window.onload = init;
+</script>
+
+</body>
+</html>

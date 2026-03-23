@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Fake SCORM Course</title>
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    .lesson { display: none; }
+    .active { display: block; }
+    button { margin: 5px; padding: 10px; }
+  </style>
+</head>
+<body>
+
+<h1>Fake SCORM Course</h1>
+<p id="progress">Progress: 0%</p>
+
+<div id="lesson1" class="lesson active">
+  <h2>Lesson 1</h2>
+  <p>This is lesson 1 content.</p>
+</div>
+
+<div id="lesson2" class="lesson">
+  <h2>Lesson 2</h2>
+  <p>This is lesson 2 content.</p>
+</div>
+
+<div id="lesson3" class="lesson">
+  <h2>Lesson 3</h2>
+  <p>This is lesson 3 content.</p>
+</div>
+
+<button onclick="prev()">Prev</button>
+<button onclick="next()">Next</button>
+<button onclick="complete()">Complete</button>
+
+<script>
+let API = window.parent.API;
+let current = 1;
+const total = 3;
+
+function showLesson(n){
+  document.querySelectorAll('.lesson').forEach(l => l.classList.remove('active'));
+  document.getElementById('lesson'+n).classList.add('active');
+
+  let progress = Math.round((n/total)*100);
+  document.getElementById('progress').innerText = "Progress: " + progress + "%";
+
+  if(API){
+    API.LMSSetValue("cmi.core.lesson_location", n.toString());
+    API.LMSSetValue("cmi.suspend_data", JSON.stringify({lesson:n}));
+    API.LMSCommit("");
+  }
+}
+
+function next(){
+  if(current < total){
+    current++;
+    showLesson(current);
+  }
+}
+
+function prev(){
+  if(current > 1){
+    current--;
+    showLesson(current);
+  }
+}
+
+function complete(){
+  if(API){
+    API.LMSSetValue("cmi.core.lesson_status","completed");
+    API.LMSCommit("");
+    API.LMSFinish("");
+    alert("Completed!");
+  }
+}
+
+function init(){
+  if(API){
+    API.LMSInitialize("");
+    let data = API.LMSGetValue("cmi.suspend_data");
+    if(data){
+      try{
+        let parsed = JSON.parse(data);
+        current = parsed.lesson || 1;
+      }catch(e){}
+    }
+    showLesson(current);
+  }
+}
+
+window.onload = init;
+</script>
+
+</body>
+</html>
