@@ -201,7 +201,10 @@ router.post('/complete', async (req, res) => {
         'enrolledCourses.progress': { $lt: 100 }
       },
       { 
-        $set: { 'enrolledCourses.$.progress': 100 } 
+        $set: { 
+          'enrolledCourses.$.progress': 100,
+          'enrolledCourses.$.status': 'completed'
+        } 
       },
       { new: true }
     );

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Simple SCORM Test</title>
+</head>
+<body>
+  <h1>SCORM Test Course</h1>
+  <p id="status">Progress: 0%</p>
+
+  <button onclick="next()">Next Step</button>
+  <button onclick="complete()">Complete Course</button>
+
+  <script>
+    let API = window.parent.API;
+    let step = 0;
+
+    function init() {
+      if (API) {
+        API.LMSInitialize("");
+        const saved = API.LMSGetValue("cmi.suspend_data");
+
+        if (saved) {
+          try {
+            const data = JSON.parse(saved);
+            step = data.step || 0;
+          } catch(e){}
+        }
+
+        updateUI();
+      }
+    }
+
+    function next() {
+      step++;
+      updateUI();
+
+      API.LMSSetValue("cmi.core.lesson_location", step.toString());
+      API.LMSSetValue("cmi.suspend_data", JSON.stringify({ step }));
+      API.LMSCommit("");
+    }
+
+    function complete() {
+      API.LMSSetValue("cmi.core.lesson_status", "completed");
+      API.LMSCommit("");
+      API.LMSFinish("");
+      document.getElementById("status").innerText = "Completed ✅";
+    }
+
+    function updateUI() {
+      document.getElementById("status").innerText = "Step: " + step;
+    }
+
+    window.onload = init;
+  </script>
+</body>
+</html>

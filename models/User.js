@@ -17,6 +17,9 @@ const UserSchema = new mongoose.Schema({
       courseId: { type: mongoose.Schema.Types.ObjectId, ref: 'Course' },
       enrolledAt: { type: Date, default: Date.now },
       progress: { type: Number, default: 0 },
+      status: { type: String, default: 'incomplete' }, // 'incomplete', 'completed', 'passed'
+      suspendData: { type: String, default: '' },
+      lessonLocation: { type: String, default: '' }, // For SCORM bookmarking
     },
   ],
   companyId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },

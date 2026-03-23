@@ -109,4 +109,80 @@ router.patch('/progress', async (req, res) => {
   }
 });
 
+/**
+ * GET /api/payments/suspend/:userId/:courseId
+ * Retrieves bookmarking data for a specific course
+ */
+router.get('/suspend/:userId/:courseId', async (req, res) => {
+  try {
+    const { userId, courseId } = req.params;
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ error: 'User not found.' });
+
+    const enrollment = user.enrolledCourses.find(
+      (e) => e.courseId.toString() === courseId.toString()
+    );
+    if (!enrollment) return res.status(404).json({ error: 'Not enrolled.' });
+
+    res.json({ 
+      suspendData: enrollment.suspendData || '',
+      lessonLocation: enrollment.lessonLocation || '',
+      status: enrollment.status || 'incomplete'
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+/**
+ * PATCH /api/payments/suspend
+ * Body: { userId, courseId, suspendData, lessonLocation, status }
+ */
+router.patch('/suspend', async (req, res) => {
+  try {
+    const { userId, courseId, suspendData, lessonLocation, status } = req.body;
+    
+    // First, get the current enrollment status to implement protection
+    const userForCheck = await User.findById(userId);
+    if (!userForCheck) return res.status(404).json({ error: 'User not found.' });
+    
+    const enrollment = userForCheck.enrolledCourses.find(e => e.courseId.toString() === courseId.toString());
+    if (!enrollment) return res.status(404).json({ error: 'Not enrolled.' });
+
+    const updateFields = {};
+    if (suspendData !== undefined) updateFields['enrolledCourses.$.suspendData'] = suspendData;
+    if (lessonLocation !== undefined) updateFields['enrolledCourses.$.lessonLocation'] = lessonLocation;
+    
+    // Status protection logic
+    const newStatus = status?.toLowerCase();
+    const oldStatus = enrollment.status?.toLowerCase();
+    const isFinished = oldStatus === 'completed' || oldStatus === 'passed';
+    const isReverting = newStatus === 'incomplete' || newStatus === 'browsed';
+
+    if (status !== undefined) {
+      if (isFinished && isReverting) {
+        console.log(`[Atomic] Protected status for user ${userId}.`);
+      } else {
+        updateFields['enrolledCourses.$.status'] = status;
+      }
+    }
+
+    if (Object.keys(updateFields).length === 0) {
+      return res.json({ message: 'No changes provided.' });
+    }
+
+    const updatedUser = await User.findOneAndUpdate(
+      { _id: userId, 'enrolledCourses.courseId': courseId },
+      { $set: updateFields },
+      { new: true }
+    );
+
+    if (!updatedUser) return res.status(404).json({ error: 'Update failed (user or enrollment not found).' });
+
+    res.json({ message: 'Bookmarking saved atomically.' });
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 module.exports = router;
