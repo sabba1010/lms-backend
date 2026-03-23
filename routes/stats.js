@@ -23,13 +23,13 @@ router.get('/', async (req, res) => {
     const courseEnrollmentCounts = {}; // { courseId: { title, count } }
     let activeStudentsCount = 0;
 
-    // Monthly revenue map for last 6 months
+    // Monthly revenue map for last 12 months
     const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    const lastSixMonths = [];
-    for (let i = 5; i >= 0; i--) {
+    const lastTwelveMonths = [];
+    for (let i = 11; i >= 0; i--) {
       const d = new Date();
       d.setMonth(d.getMonth() - i);
-      lastSixMonths.push({ month: monthNames[d.getMonth()], revenue: 0, yearMonth: `${d.getFullYear()}-${d.getMonth()}` });
+      lastTwelveMonths.push({ month: monthNames[d.getMonth()], revenue: 0, yearMonth: `${d.getFullYear()}-${d.getMonth()}` });
     }
 
     users.forEach(user => {
@@ -63,9 +63,9 @@ router.get('/', async (req, res) => {
         // Engagement (Active if progress > 0)
         if (enrollment.progress > 0) userIsActive = true;
 
-        // Monthly Revenue (Last 6 months)
+        // Monthly Revenue (Last 12 months)
         const yearMonth = `${enrDate.getFullYear()}-${enrDate.getMonth()}`;
-        const monthEntry = lastSixMonths.find(m => m.yearMonth === yearMonth);
+        const monthEntry = lastTwelveMonths.find(m => m.yearMonth === yearMonth);
         if (monthEntry) {
           monthEntry.revenue += price;
         }
@@ -103,7 +103,7 @@ router.get('/', async (req, res) => {
       courses: courseCount,
       engagement: `${engagement}%`,
       topCourses: topCourses,
-      monthlyRevenue: lastSixMonths.map(({ month, revenue }) => ({ month, revenue })),
+      monthlyRevenue: lastTwelveMonths.map(({ month, revenue }) => ({ month, revenue })),
       recentTransactions: recentTransactions
     });
   } catch (err) {
