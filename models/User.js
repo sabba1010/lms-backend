@@ -11,29 +11,26 @@ const UserSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   username: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  // Enrolled courses after successful payment
   enrolledCourses: [
     {
       courseId: { type: mongoose.Schema.Types.ObjectId, ref: 'Course' },
       enrolledAt: { type: Date, default: Date.now },
       progress: { type: Number, default: 0 },
-      status: { type: String, default: 'incomplete' }, // 'incomplete', 'completed', 'passed'
+      status: { type: String, default: 'incomplete' },
       suspendData: { type: String, default: '' },
-      lessonLocation: { type: String, default: '' }, // For SCORM bookmarking
+      lessonLocation: { type: String, default: '' },
     },
   ],
   companyId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   createdAt: { type: Date, default: Date.now },
 });
 
-// Hash password before saving
 UserSchema.pre('save', async function (next) {
   if (!this.isModified('password')) return next();
   this.password = await bcrypt.hash(this.password, 10);
   next();
 });
 
-// Method to compare passwords at login
 UserSchema.methods.comparePassword = async function (candidatePassword) {
   return bcrypt.compare(candidatePassword, this.password);
 };

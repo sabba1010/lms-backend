@@ -3,223 +3,113 @@ const router = express.Router();
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const mongoose = require('mongoose');
 const AdmZip = require('adm-zip');
 const Course = require('../models/Course');
 const User = require('../models/User');
 
-// ── Multer config: store SCORM zips in /uploads ──────────────────────────────
+// --- UPLOAD ---
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const uploadDir = path.join(__dirname, '..', 'uploads');
-    if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
-    cb(null, uploadDir);
+    const dir = path.join(__dirname, '..', 'uploads');
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    cb(null, dir);
   },
   filename: (req, file, cb) => {
-    // Keep original name so we can track it
-    const safeName = file.originalname.replace(/[^a-zA-Z0-9._-]/g, '_');
-    cb(null, safeName);
+    const safe = file.originalname.replace(/[^a-zA-Z0-9._-]/g, '_');
+    cb(null, safe);
   },
 });
+const upload = multer({ storage });
 
-const upload = multer({
-  storage,
-  fileFilter: (req, file, cb) => {
-    if (path.extname(file.originalname).toLowerCase() !== '.zip') {
-      return cb(new Error('Only .zip files are allowed'));
-    }
-    cb(null, true);
-  },
-  limits: { fileSize: 500 * 1024 * 1024 }, // 500 MB max
-});
-
-/**
- * POST /api/scorm/upload
- * Multipart form fields: courseId, scormFile (the zip)
- *
- * 1. Receives the zip
- * 2. Extracts it to /public/scorm/<courseId>/
- * 3. Updates course.scormFileName in DB
- */
 router.post('/upload', upload.single('scormFile'), async (req, res) => {
   try {
-    if (!req.file) return res.status(400).json({ error: 'No SCORM file uploaded.' });
-
     const { courseId } = req.body;
-    if (!courseId) return res.status(400).json({ error: 'courseId is required.' });
+    if (!req.file || !courseId) return res.status(400).json({ error: 'Missing data' });
 
-    const course = await Course.findById(courseId);
-    if (!course) return res.status(404).json({ error: 'Course not found.' });
-
-    // Extract location: public/scorm/<courseId>/
     const extractDir = path.join(__dirname, '..', 'public', 'scorm', courseId);
-
-    // Clean any previous extraction
-    if (fs.existsSync(extractDir)) {
-      fs.rmSync(extractDir, { recursive: true, force: true });
-    }
+    if (fs.existsSync(extractDir)) fs.rmSync(extractDir, { recursive: true, force: true });
     fs.mkdirSync(extractDir, { recursive: true });
 
-    // Unzip
     const zip = new AdmZip(req.file.path);
     zip.extractAllTo(extractDir, true);
 
-    // Update DB — store the courseId as the scorm folder name
-    course.scormFileName = courseId;
-    await course.save();
+    const course = await Course.findById(courseId);
+    if (course) {
+      course.scormFileName = courseId;
+      await course.save();
+    }
 
-    // Clean up the uploaded zip file
     fs.unlinkSync(req.file.path);
-
-    // Determine the entry point (index.html or imsmanifest.xml)
-    const entryPoint = findScormEntry(extractDir);
-
-    // Ensure package allows standalone execution (no LMS parent) for cross-origin React deployment
-    if (entryPoint) {
-      const entryFile = path.join(extractDir, entryPoint);
-      patchScormHtml(entryFile);
-
-      const scormContentEntry = path.join(extractDir, 'scormcontent', 'index.html');
-      patchScormHtml(scormContentEntry);
-    }
-
-    res.json({
-      message: 'SCORM package uploaded and extracted successfully.',
-      scormPath: `/scorm/${courseId}/`,
-      entryPoint: entryPoint ? `/scorm/${courseId}/${entryPoint}` : null,
-      course,
-    });
-  } catch (err) {
-    console.error('SCORM upload error:', err);
-    res.status(500).json({ error: 'Failed to process SCORM package.', details: err.message });
-  }
+    const entry = findScormEntry(extractDir);
+    res.json({ entryPoint: `/scorm/${courseId}/${entry}` });
+  } catch (err) { res.status(500).json({ error: 'Upload failed' }); }
 });
 
-function patchScormHtml(filePath) {
-  if (!fs.existsSync(filePath)) {
-    return;
-  }
-
-  let source = fs.readFileSync(filePath, 'utf8');
-
-  source = source.replace(/const allowOutsideDriver = (true|false)/, 'const allowOutsideDriver = true');
-
-  source = source.replace(
-    /return window\.location\.protocol === 'file:'[\s\S]*?typeof window\.parent\.IsLmsPresent === 'function'\)/,
-    'return true'
-  );
-
-  source = source.replace(
-    /throw new Error\("Content launched outside of a supported LMS enviroment\."\);/,
-    'console.warn("Content launched outside of a supported LMS environment (standalone mode).")'
-  );
-
-  fs.writeFileSync(filePath, source, 'utf8');
-}
-
-/**
- * GET /api/scorm/entry/:courseId
- * Returns the entry point URL for a course's SCORM package
- */
+// --- GET ENTRY ---
 router.get('/entry/:courseId', async (req, res) => {
-  try {
-    const { courseId } = req.params;
-    const extractDir = path.join(__dirname, '..', 'public', 'scorm', courseId);
-
-    if (!fs.existsSync(extractDir)) {
-      return res.status(404).json({ error: 'SCORM package not found for this course.' });
-    }
-
-    const entryPoint = findScormEntry(extractDir);
-    if (!entryPoint) {
-      return res.status(404).json({ error: 'No valid SCORM entry point found.' });
-    }
-
-    // Patch each requested package on-the-fly to run in standalone mode as needed
-    const entryFile = path.join(extractDir, entryPoint);
-    patchScormHtml(entryFile);
-
-    const scormContentEntry = path.join(extractDir, 'scormcontent', 'index.html');
-    patchScormHtml(scormContentEntry);
-
-    res.json({
-      entryPoint: `/scorm/${courseId}/${entryPoint}`,
-      scormPath: `/scorm/${courseId}/`,
-    });
-  } catch (err) {
-    res.status(500).json({ error: 'Server error' });
-  }
+  const { courseId } = req.params;
+  const dir = path.join(__dirname, '..', 'public', 'scorm', courseId);
+  const entry = findScormEntry(dir);
+  res.json({ entryPoint: `/scorm/${courseId}/${entry}` });
 });
 
-// ── Helper: find the HTML entry point of the extracted SCORM package ─────────
-function findScormEntry(dir) {
-  // Priority order for SCORM entry points
-  const candidates = [
-    'index.html',
-    'index.htm',
-    'story.html',
-    'story_html5.html',
-    'scormcontent/index.html',
-    'content/index.html',
-    'res/index.html',
-  ];
+// --- SAVE SUSPEND (RESUME) ---
+router.patch('/suspend', async (req, res) => {
+  try {
+    const { userId, courseId, suspendData, lessonLocation, status } = req.body;
+    if (!userId || !courseId) return res.status(400).json({ error: 'Missing IDs' });
 
-  for (const candidate of candidates) {
-    if (fs.existsSync(path.join(dir, candidate))) {
-      return candidate;
-    }
-  }
+    await User.findOneAndUpdate(
+      { _id: userId, 'enrolledCourses.courseId': courseId },
+      { 
+        $set: { 
+          'enrolledCourses.$.suspendData': suspendData || '',
+          'enrolledCourses.$.lessonLocation': lessonLocation || '',
+          'enrolledCourses.$.status': status || 'incomplete'
+        } 
+      }
+    );
+    res.json({ message: 'Saved' });
+  } catch (err) { res.status(500).json({ error: 'Save failed' }); }
+});
 
-  // Fallback: find any .html file at root level
-  const files = fs.readdirSync(dir);
-  const htmlFile = files.find((f) => f.toLowerCase().endsWith('.html') || f.toLowerCase().endsWith('.htm'));
-  return htmlFile || null;
-}
+// --- GET SUSPEND ---
+router.get('/suspend/:userId/:courseId', async (req, res) => {
+  try {
+    const { userId, courseId } = req.params;
+    const user = await User.findById(userId);
+    const course = user?.enrolledCourses.find(c => c.courseId.toString() === courseId);
+    if (!course) return res.status(404).json({});
 
-// ── POST /api/scorm/complete ───────────────────────────────────────────────
-/**
- * Updates course progress to 100% when a SCORM "completed" status is detected.
- * Prevents duplicate updates.
- */
+    res.json({
+      suspendData: course.suspendData || '',
+      lessonLocation: course.lessonLocation || '',
+      status: course.status || 'incomplete'
+    });
+  } catch (err) { res.status(500).json({}); }
+});
+
+// --- COMPLETE ---
 router.post('/complete', async (req, res) => {
   try {
     const { userId, courseId } = req.body;
-    console.log(`SCORM Completion Request received: User=${userId}, Course=${courseId}`);
-
-    if (!userId || !courseId) {
-      return res.status(400).json({ error: 'userId and courseId are required.' });
-    }
-
-    // Convert to ObjectId to ensure correct matching in subdocuments
-    const uId = new mongoose.Types.ObjectId(userId);
-    const cId = new mongoose.Types.ObjectId(courseId);
-
-    // Update the progress for the specific course in the user's enrolledCourses array
-    const user = await User.findOneAndUpdate(
-      { 
-        _id: uId, 
-        'enrolledCourses.courseId': cId,
-        'enrolledCourses.progress': { $lt: 100 }
-      },
-      { 
-        $set: { 
-          'enrolledCourses.$.progress': 100,
-          'enrolledCourses.$.status': 'completed'
-        } 
-      },
-      { new: true }
+    await User.findOneAndUpdate(
+      { _id: userId, 'enrolledCourses.courseId': courseId },
+      { $set: { 'enrolledCourses.$.progress': 100, 'enrolledCourses.$.status': 'completed' } }
     );
-
-    if (!user) {
-      console.log('SCORM Completion: No update performed (already 100% or enrollment not found).');
-      return res.json({ message: 'Progress already up to date or enrollment not found.', status: 'ignored' });
-    }
-
-    console.log('SCORM Completion: Successfully updated database to 100%.');
-    res.json({ message: 'Progress updated to 100%', status: 'updated' });
-  } catch (err) {
-    console.error('SCORM completion error:', err);
-    res.status(500).json({ error: 'Failed to update progress.', details: err.message });
-  }
+    res.json({ message: 'Completed' });
+  } catch (err) { res.status(500).json({ error: 'Failed' }); }
 });
+
+function findScormEntry(dir) {
+  const candidates = ['index.html', 'story.html', 'story_html5.html', 'scormcontent/index.html'];
+  for (const f of candidates) {
+    if (fs.existsSync(path.join(dir, f))) return f;
+  }
+  return 'index.html';
+}
+
+module.exports = router;
 
 module.exports = router;
