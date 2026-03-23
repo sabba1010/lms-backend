@@ -22,6 +22,8 @@ router.get('/', async (req, res) => {
     const allEnrollments = [];
     const courseEnrollmentCounts = {}; 
     let activeStudentsCount = 0;
+    let companyEnrollmentsCount = 0;
+    let studentEnrollmentsCount = 0;
 
     const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     const lastTwelveMonths = [];
@@ -73,6 +75,10 @@ router.get('/', async (req, res) => {
         if (monthEntry) {
           monthEntry.revenue += price;
         }
+
+        // Role-based Enrollment Counts
+        if (user.role === 'company') companyEnrollmentsCount++;
+        else if (user.role === 'student') studentEnrollmentsCount++;
       });
       if (userIsActive) activeStudentsCount++;
     });
@@ -106,6 +112,8 @@ router.get('/', async (req, res) => {
       students: userCount,
       courses: courseCount,
       engagement: `${engagement}%`,
+      companyEnrollments: companyEnrollmentsCount,
+      studentEnrollments: studentEnrollmentsCount,
       topCourses: topCourses,
       monthlyRevenue: lastTwelveMonths.map(({ month, revenue }) => ({ month, revenue })),
       recentTransactions: recentTransactions
