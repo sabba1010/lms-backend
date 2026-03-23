@@ -174,4 +174,41 @@ function findScormEntry(dir) {
   return htmlFile || null;
 }
 
+// ── POST /api/scorm/complete ───────────────────────────────────────────────
+/**
+ * Updates course progress to 100% when a SCORM "completed" status is detected.
+ * Prevents duplicate updates.
+ */
+router.post('/complete', async (req, res) => {
+  try {
+    const { userId, courseId } = req.body;
+    if (!userId || !courseId) {
+      return res.status(400).json({ error: 'userId and courseId are required.' });
+    }
+
+    // Update the progress for the specific course in the user's enrolledCourses array
+    const user = await User.findOneAndUpdate(
+      { 
+        _id: userId, 
+        'enrolledCourses.courseId': courseId,
+        'enrolledCourses.progress': { $lt: 100 } // Only update if not already 100%
+      },
+      { 
+        $set: { 'enrolledCourses.$.progress': 100 } 
+      },
+      { new: true }
+    );
+
+    if (!user) {
+      // Either user not found, not enrolled, or already at 100%
+      return res.json({ message: 'Progress already up to date or enrollment not found.', status: 'ignored' });
+    }
+
+    res.json({ message: 'Progress updated to 100%', status: 'updated' });
+  } catch (err) {
+    console.error('SCORM completion error:', err);
+    res.status(500).json({ error: 'Failed to update progress.' });
+  }
+});
+
 module.exports = router;
