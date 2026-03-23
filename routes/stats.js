@@ -14,6 +14,8 @@ router.get('/', async (req, res) => {
     // 1. Basic counts
     const courseCount = await Course.countDocuments();
     const userCount = await User.countDocuments();
+    const studentCount = await User.countDocuments({ role: 'student' });
+    const companyCount = await User.countDocuments({ role: 'company' });
     
     // 2. Fetch all users for aggregations
     const users = await User.find().populate('enrolledCourses.courseId');
@@ -109,7 +111,8 @@ router.get('/', async (req, res) => {
 
     res.json({
       revenue: `$${totalRevenue.toLocaleString()}`,
-      students: userCount,
+      students: studentCount,
+      totalCompanies: companyCount,
       courses: courseCount,
       engagement: `${engagement}%`,
       companyEnrollments: companyEnrollmentsCount,
