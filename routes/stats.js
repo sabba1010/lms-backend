@@ -5,7 +5,9 @@ const User = require('../models/User');
 
 router.get('/', async (req, res) => {
   try {
-    const { days } = req.query;
+    // Monthly revenue map for last 12 months with offset support
+    const { days, offset } = req.query;
+    const filterOffset = parseInt(offset) || 0;
     const filterDays = days ? parseInt(days) : null;
     const cutoffDate = filterDays ? new Date(Date.now() - filterDays * 24 * 60 * 60 * 1000) : null;
 
@@ -14,19 +16,21 @@ router.get('/', async (req, res) => {
     const userCount = await User.countDocuments();
     
     // 2. Fetch all users for aggregations
-    // In a massive app, we'd use mongo aggregation pipelines, 
-    // but for this scale, processing in memory is fine and more flexible for the existing schema.
     const users = await User.find().populate('enrolledCourses.courseId');
     
     let totalRevenue = 0;
     const allEnrollments = [];
-    const courseEnrollmentCounts = {}; // { courseId: { title, count } }
+    const courseEnrollmentCounts = {}; 
     let activeStudentsCount = 0;
 
-    // Monthly revenue map for last 12 months
     const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     const lastTwelveMonths = [];
-    for (let i = 11; i >= 0; i--) {
+    
+    // Start from (offset * 12) + 11 months ago, down to (offset * 12) months ago
+    const startOffset = (filterOffset * 12) + 11;
+    const endOffset = (filterOffset * 12);
+    
+    for (let i = startOffset; i >= endOffset; i--) {
       const d = new Date();
       d.setMonth(d.getMonth() - i);
       lastTwelveMonths.push({ month: monthNames[d.getMonth()], revenue: 0, yearMonth: `${d.getFullYear()}-${d.getMonth()}` });
