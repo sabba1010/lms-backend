@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8" />
+<title>Pro SCORM Course</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,Arial;display:flex;height:100vh;background:#0b1220;color:#fff}
+.sidebar{width:300px;background:#111827;padding:20px;display:flex;flex-direction:column}
+.title{font-size:20px;font-weight:bold;margin-bottom:20px}
+.progress{margin-bottom:20px}
+.bar{height:6px;background:#1f2937;border-radius:5px;overflow:hidden}
+.fill{height:6px;background:#22c55e;width:0%;transition:.3s}
+.lesson{padding:10px;margin-bottom:6px;border-radius:6px;background:#1f2937;cursor:pointer}
+.lesson.active{background:#22c55e;color:#000}
+.content{flex:1;padding:40px;overflow:auto}
+.card{background:#111827;padding:20px;border-radius:10px;margin-bottom:20px}
+button{padding:10px 16px;border:none;border-radius:6px;margin-right:10px;cursor:pointer}
+.primary{background:#22c55e;color:#000}
+.secondary{background:#374151;color:#fff}
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+<div class="title">Pro Course</div>
+
+<div class="progress">
+<div id="progressText">0% COMPLETE</div>
+<div class="bar"><div id="bar" class="fill"></div></div>
+</div>
+
+<div id="lessonList"></div>
+</div>
+
+<div class="content">
+<div class="card">
+<h1 id="title"></h1>
+<p id="text"></p>
+</div>
+
+<div class="card" id="quizBox" style="display:none;">
+<h3>Quick Quiz</h3>
+<p>What is 2 + 2?</p>
+<button onclick="answer(3)">3</button>
+<button onclick="answer(4)">4</button>
+<p id="quizResult"></p>
+</div>
+
+<button class="secondary" onclick="prev()">Prev</button>
+<button class="primary" onclick="next()">Next</button>
+<button onclick="complete()">Complete</button>
+</div>
+
+<script>
+let API = window.parent.API;
+let current = 1;
+
+const lessons = [
+{title:"Intro", text:"Welcome to a professional SCORM course. This lesson introduces concepts in detail."},
+{title:"Deep Dive", text:"We go deeper with structured explanation and real use cases."},
+{title:"Case Study", text:"A real-world scenario explained step by step."},
+{title:"Quiz", text:"Test your knowledge below.", quiz:true},
+{title:"Summary", text:"Final summary of everything learned."}
+];
+
+const total = lessons.length;
+
+function renderList(){
+  const list = document.getElementById("lessonList");
+  list.innerHTML = "";
+  lessons.forEach((l,i)=>{
+    const d=document.createElement("div");
+    d.className="lesson"+(i+1===current?" active":"");
+    d.innerText=(i+1)+". "+l.title;
+    d.onclick=()=>{current=i+1;update()};
+    list.appendChild(d);
+  });
+}
+
+function update(){
+  const l=lessons[current-1];
+  document.getElementById("title").innerText=l.title;
+  document.getElementById("text").innerText=l.text;
+
+  document.getElementById("quizBox").style.display=l.quiz?"block":"none";
+
+  let p=Math.round((current/total)*100);
+  document.getElementById("progressText").innerText=p+"% COMPLETE";
+  document.getElementById("bar").style.width=p+"%";
+
+  renderList();
+
+  if(API){
+    API.LMSSetValue("cmi.core.lesson_location", current.toString());
+    API.LMSSetValue("cmi.suspend_data", JSON.stringify({lesson:current}));
+    API.LMSCommit("");
+  }
+}
+
+function next(){ if(current<total){current++;update()} }
+function prev(){ if(current>1){current--;update()} }
+
+function answer(a){
+  document.getElementById("quizResult").innerText = a===4 ? "Correct ✅" : "Wrong ❌";
+}
+
+function complete(){
+  if(API){
+    API.LMSSetValue("cmi.core.lesson_status","completed");
+    API.LMSCommit("");
+    API.LMSFinish("");
+    alert("Completed!");
+  }
+}
+
+function init(){
+  if(API){
+    API.LMSInitialize("");
+    let d=API.LMSGetValue("cmi.suspend_data");
+    if(d){
+      try{current=JSON.parse(d).lesson||1}catch(e){}
+    }
+  }
+  update();
+}
+
+window.onload=init;
+</script>
+
+</body>
+</html>

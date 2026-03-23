@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Ultra Modern Course</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,Arial;display:flex;height:100vh;background:#0b1220;color:#fff}
+.sidebar{width:300px;background:#020617;padding:20px;display:flex;flex-direction:column}
+.title{font-size:20px;font-weight:bold;margin-bottom:20px}
+.progress{margin-bottom:20px}
+.bar{height:6px;background:#1e293b;border-radius:6px;overflow:hidden}
+.fill{height:6px;background:linear-gradient(90deg,#22c55e,#4ade80);width:0%;transition:.4s}
+.lesson{padding:12px;margin-bottom:6px;border-radius:8px;background:#1e293b;cursor:pointer}
+.lesson.active{background:#22c55e;color:#000}
+.content{flex:1;padding:40px;overflow:auto}
+.card{background:#020617;padding:25px;border-radius:12px;margin-bottom:20px}
+button{padding:10px 16px;border:none;border-radius:8px;margin-right:10px;cursor:pointer}
+.primary{background:#22c55e;color:#000}
+.secondary{background:#334155;color:#fff}
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+<div class="title">Ultra Course</div>
+
+<div class="progress">
+<div id="progressText">0% COMPLETE</div>
+<div class="bar"><div id="bar" class="fill"></div></div>
+</div>
+
+<div id="lessonList"></div>
+</div>
+
+<div class="content">
+<div class="card">
+<h1 id="title"></h1>
+<p id="text"></p>
+</div>
+
+<button class="secondary" onclick="prev()">Prev</button>
+<button class="primary" onclick="next()">Next</button>
+</div>
+
+<script>
+let API = window.parent.API;
+let current = 1;
+
+const lessons = [
+{title:"Welcome", text:"Welcome to this ultra modern SCORM course. You will learn everything step by step."},
+{title:"Concept", text:"Understanding the core concept with deep explanation and examples."},
+{title:"Application", text:"Applying the knowledge in real-world scenarios and workflows."},
+{title:"Advanced", text:"Advanced insights and optimization techniques."},
+{title:"Final", text:"You have reached the final lesson. Completion will trigger automatically."}
+];
+
+const total = lessons.length;
+
+function render(){
+  const list = document.getElementById("lessonList");
+  list.innerHTML="";
+  lessons.forEach((l,i)=>{
+    const d=document.createElement("div");
+    d.className="lesson"+(i+1===current?" active":"");
+    d.innerText=(i+1)+". "+l.title;
+    d.onclick=()=>{current=i+1;update()};
+    list.appendChild(d);
+  });
+}
+
+function update(){
+  const l=lessons[current-1];
+  document.getElementById("title").innerText=l.title;
+  document.getElementById("text").innerText=l.text;
+
+  let p=Math.round((current/total)*100);
+  document.getElementById("progressText").innerText=p+"% COMPLETE";
+  document.getElementById("bar").style.width=p+"%";
+
+  render();
+
+  if(API){
+    API.LMSSetValue("cmi.core.lesson_location", current.toString());
+    API.LMSSetValue("cmi.suspend_data", JSON.stringify({lesson:current}));
+    API.LMSCommit("");
+  }
+
+  // 🔥 AUTO COMPLETE
+  if(p === 100 && API){
+    API.LMSSetValue("cmi.core.lesson_status","completed");
+    API.LMSCommit("");
+    API.LMSFinish("");
+    console.log("Auto Completed 🔥");
+  }
+}
+
+function next(){ if(current<total){current++;update()} }
+function prev(){ if(current>1){current--;update()} }
+
+function init(){
+  if(API){
+    API.LMSInitialize("");
+    let d=API.LMSGetValue("cmi.suspend_data");
+    if(d){
+      try{current=JSON.parse(d).lesson||1}catch(e){}
+    }
+  }
+  update();
+}
+
+window.onload=init;
+</script>
+
+</body>
+</html>
