@@ -1,0 +1,196 @@
+<?xml version="1.0" ?>
+<manifest identifier="vy21o5DDViz4uOugA3EnpoQMZIaLxpj7BAsxEprG" version="1"
+  xmlns="http://www.imsproject.org/xsd/imscp_rootv1p1p2"
+  xmlns:adlcp="http://www.adlnet.org/xsd/adlcp_rootv1p2"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.imsproject.org/xsd/imscp_rootv1p1p2 imscp_rootv1p1p2.xsd
+                      http://www.adlnet.org/xsd/adlcp_rootv1p2 adlcp_rootv1p2.xsd">
+  <metadata>
+    <schema>ADL SCORM</schema>
+    <schemaversion>1.2</schemaversion>
+    <adlcp:location>metadata.xml</adlcp:location> 
+  </metadata>
+  <organizations default="articulate_rise">
+      <organization identifier="articulate_rise">
+      <title>Adult Safeguarding in Practice: Law, Trauma-Informed and Therapeutic Approaches (2026)</title>
+      <item identifier="i1" identifierref="r1" isvisible="true">
+        <title>Adult Safeguarding in Practice: Law, Trauma-Informed and Therapeutic Approaches (2026)</title>
+      </item>
+    </organization>
+  </organizations>
+  <resources>
+    <resource identifier="r1" type="webcontent" adlcp:scormtype="sco" href="scormdriver/indexAPI.html">
+      <!-- SCORMDRIVER STUFF -->
+      <file href="scormdriver/indexAPI.html" />
+      <file href="scormdriver/preloadIntegrity.js" />
+      <file href="scormdriver/driverOptions.js" />
+      <file href="scormdriver/AICCComm.html" />
+      <file href="scormdriver/auto-scripts/AutoBookmark.js" />
+      <file href="scormdriver/auto-scripts/AutoCompleteSCO.js" />
+      <file href="scormdriver/auto-scripts/CourseExit.js" />
+      <file href="scormdriver/blank.html" />
+      <file href="scormdriver/goodbye.html" />
+      <file href="scormdriver/scormdriver.js" />
+      <file href="scormdriver/browsersniff.js" />
+
+      <!-- RUNTIME COMMON STUFF -->
+      <file href="scormcontent/index.html" />
+
+      
+        <file href="scormcontent/lib/lzwcompress.js"/>
+      
+
+      <!-- FRONTEND BUNDLE ASSETS -->
+      <file href="scormcontent/lib/rise/4c6896bb.js" />
+<file href="scormcontent/lib/rise/bc217a8a.css" />
+<file href="scormcontent/lib/rise/15d2223b.js" />
+<file href="scormcontent/lib/rise/341c1fbc.css" />
+<file href="scormcontent/lib/rise/fe66a7e5.js" />
+<file href="scormcontent/lib/rise/9aede266.ttf" />
+<file href="scormcontent/lib/rise/bff47411.woff" />
+<file href="scormcontent/lib/rise/ca8fdaed.js" />
+<file href="scormcontent/lib/rise/7adba53a.js" />
+<file href="scormcontent/lib/rise/b74eb1e4.js" />
+<file href="scormcontent/lib/rise/c390512f.js" />
+<file href="scormcontent/lib/rise/3125981b.js" />
+<file href="scormcontent/lib/rise/884df0b0.js" />
+<file href="scormcontent/lib/rise/50b72974.js" />
+<file href="scormcontent/lib/rise/825741df.js" />
+<file href="scormcontent/lib/rise/4ca412c8.js" />
+<file href="scormcontent/lib/rise/64c13194.js" />
+<file href="scormcontent/lib/rise/4ad68af0.js" />
+<file href="scormcontent/lib/rise/47f55973.js" />
+<file href="scormcontent/lib/rise/a95f77c6.js" />
+<file href="scormcontent/lib/rise/20832720.js" />
+<file href="scormcontent/lib/rise/54fd4307.js" />
+<file href="scormcontent/lib/rise/8716f7be.js" />
+<file href="scormcontent/lib/rise/b7302d3e.js" />
+<file href="scormcontent/lib/rise/cfa9ae74.js" />
+<file href="scormcontent/lib/rise/fc604295.js" />
+<file href="scormcontent/lib/learn_dist/entry.js" />
+<file href="scormcontent/lib/learn_dist/5515a099.js" />
+<file href="scormcontent/lib/learn_dist/91a2b501.css" />
+<file href="scormcontent/lib/learn_dist/7ef729ab.js" />
+<file href="scormcontent/lib/mondrian/entry.js" />
+<file href="scormcontent/lib/mondrian/cf0a2771.js" />
+<file href="scormcontent/lib/mondrian/0d1ab473.js" />
+<file href="scormcontent/lib/mondrian/bede2d12.js" />
+<file href="scormcontent/lib/mondrian/09e37aee.js" />
+<file href="scormcontent/lib/mondrian/196251cf.js" />
+<file href="scormcontent/lib/sandbox/sandbox.html" />
+<file href="scormcontent/lib/sandbox/c77685df.js" />
+<file href="scormcontent/lib/sandbox/4adfab46.css" />
+
+
+      <!-- RUNTIME CONTENT STUFF -->
+      <file href="scormcontent/lib/fonts/Lato2-Italic.woff" />
+<file href="scormcontent/lib/fonts/Lato2-Light.woff" />
+<file href="scormcontent/lib/fonts/Lato2-Regular.woff" />
+<file href="scormcontent/lib/fonts/Lato2-Black.woff" />
+<file href="scormcontent/lib/fonts/Lato2-Bold.woff" />
+<file href="scormcontent/lib/fonts/Merriweather-Light.woff" />
+<file href="scormcontent/lib/fonts/Merriweather-Regular.woff" />
+<file href="scormcontent/lib/fonts/Merriweather-Bold.woff" />
+<file href="scormcontent/lib/fonts/Merriweather-Italic.woff" />
+<file href="scormcontent/lib/fonts/Merriweather-Black.woff" />
+<file href="scormcontent/assets/small.png" />
+<file href="scormcontent/assets/yAyQkhzrx4VUBmqc.jpg" />
+<file href="scormcontent/assets/il0CJz/bike.jpg" />
+<file href="scormcontent/assets/vMxJHb/Adult-Safeguarding.jpg" />
+<file href="scormcontent/assets/y7SkRe/Trauma-Informed-Care.jpg" />
+<file href="scormcontent/assets/Vhh9--/Therapeutic-Practice.jpg" />
+<file href="scormcontent/assets/Why-are-some-Adults-at-Ris.jpg" />
+<file href="scormcontent/assets/Firefly_Gemini%20Flash_Why.jpg" />
+<file href="scormcontent/assets/Firefly_Gemini%20Flash_Car.jpg" />
+<file href="scormcontent/assets/Firefly_Gemini%20Flash_Men.jpg" />
+<file href="scormcontent/assets/Firefly_Gemini%20Flash_Cog.jpg" />
+<file href="scormcontent/assets/Firefly_Gemini%20Flash_Soc.jpg" />
+<file href="scormcontent/assets/Firefly_Gemini%20Flash_Rel.jpg" />
+<file href="scormcontent/assets/Firefly_GeminiFlash_Substa.jpg" />
+<file href="scormcontent/assets/Firefly_Gemini%20Flash_Fin.jpg" />
+<file href="scormcontent/assets/Firefly_Gemini%20Flash_Dom.jpg" />
+<file href="scormcontent/assets/Firefly_Gemini%20Flash_Uns.jpg" />
+<file href="scormcontent/assets/OthgiC/22f0de72-7851-4a99-b364-40.mp3" />
+<file href="scormcontent/assets/mfA14S/0207.mp4" />
+<file href="scormcontent/assets/-2fhda/0207.jpg" />
+<file href="scormcontent/assets/E1IYzg/ai-captions-1770493797600.vtt" />
+<file href="scormcontent/assets/Firefly_Gemini%20Flash_Und.jpg" />
+<file href="scormcontent/assets/6rTzYq/Firefly_Gemini%20Flash_Und.jpg" />
+<file href="scormcontent/assets/Firefly_Gemini%20Flash_Dut.jpg" />
+<file href="scormcontent/assets/Firefly_Gemini%20Flash_Rec.jpg" />
+<file href="scormcontent/assets/Firefly_Gemini%20Flash_Ris.jpg" />
+<file href="scormcontent/assets/Firefly_Gemini%20Flash_Con.jpg" />
+<file href="scormcontent/assets/Firefly_Gemini%20Flash_Inf.jpg" />
+<file href="scormcontent/assets/Firefly_Gemini%20Flash_Esc.jpg" />
+<file href="scormcontent/assets/Firefly_Gemini%20Flash_Hum.jpg" />
+<file href="scormcontent/assets/Firefly_Gemini%20Flash_Not.jpg" />
+<file href="scormcontent/assets/Firefly_Gemini%20Flash_Exa.jpg" />
+<file href="scormcontent/assets/Exploring-General-Responsi.jpg" />
+<file href="scormcontent/assets/Understanding-the-Wellbein.jpg" />
+<file href="scormcontent/assets/Key-Aspects-of-Wellbeing.jpg" />
+<file href="scormcontent/assets/Impact-on-Care-Decisions.jpg" />
+<file href="scormcontent/assets/Promoting-Independence-and.jpg" />
+<file href="scormcontent/assets/Wellbeing-in-Eligibility-C.jpg" />
+<file href="scormcontent/assets/Local-Authority-Responsibi.jpg" />
+<file href="scormcontent/assets/Firefly_Gemini%20Flash_Key.jpg" />
+<file href="scormcontent/assets/EWJrB3/Firefly_Gemini%20Flash_Dut.jpg" />
+<file href="scormcontent/assets/GxPZWJ/Firefly_Gemini%20Flash_Inf.jpg" />
+<file href="scormcontent/assets/Firefly_Gemini%20Flash_Adv.jpg" />
+<file href="scormcontent/assets/Firefly_Gemini%20Flash_Whi.jpg" />
+<file href="scormcontent/assets/Firefly_Gemini%20Flash_Pro.jpg" />
+<file href="scormcontent/assets/Firefly_Gemini%20Flash_All.jpg" />
+<file href="scormcontent/assets/Firefly_Gemini%20Flash_Dep.jpg" />
+<file href="scormcontent/assets/Firefly_Gemini%20Flash_CQC.jpg" />
+<file href="scormcontent/assets/Firefly_Gemini%20Flash_bes.jpg" />
+<file href="scormcontent/assets/KyUA0u/Firefly_Gemini%20Flash_Con.jpg" />
+<file href="scormcontent/assets/1GMXjB/Firefly_Gemini%20Flash_Dut.jpg" />
+<file href="scormcontent/assets/Duty-of-Care.jpg" />
+<file href="scormcontent/assets/Trauma-Informed-Practice.jpg" />
+<file href="scormcontent/assets/kMRViq/Therapeutic-Practice.jpg" />
+<file href="scormcontent/assets/g5b81-/Firefly_Gemini%20Flash_Und.jpg" />
+<file href="scormcontent/assets/Firefly_GeminiFlash_Key%20.jpg" />
+<file href="scormcontent/assets/uwo8Pd/Firefly_Gemini%20Flash_Rec.jpg" />
+<file href="scormcontent/assets/7y5U0J/Firefly_Gemini%20Flash_Und.jpg" />
+<file href="scormcontent/assets/Firefly_Gemini%20Flash_Lin.jpg" />
+<file href="scormcontent/assets/j_KGCJ/Firefly_Gemini%20Flash_Pro.jpg" />
+<file href="scormcontent/assets/Firefly_Applying%20Trauma-.jpg" />
+<file href="scormcontent/assets/Firefly_GeminiFlash_%20Tra.jpg" />
+<file href="scormcontent/assets/y_3OeE/Firefly_Gemini%20Flash_Und.jpg" />
+<file href="scormcontent/assets/Firefly_Gemini%20Flash_Cre.jpg" />
+<file href="scormcontent/assets/Firefly_Gemini%20Flash_Use.jpg" />
+<file href="scormcontent/assets/FLKYRC/Firefly_Gemini%20Flash_Saf.jpg" />
+<file href="scormcontent/assets/CiBYbP/2cb015e6-0f9a-4156-84bd-39.mp3" />
+<file href="scormcontent/assets/Firefly_Gemini%20Flash_The.jpg" />
+<file href="scormcontent/assets/The-Care-Act-2014.jpg" />
+<file href="scormcontent/assets/The-Mental-Capacity-Act-20.jpg" />
+<file href="scormcontent/assets/21cffdde-427c-42ee-88a7-13.mp3" />
+<file href="scormcontent/assets/OAUHBj/Firefly_Gemini%20Flash_The.jpg" />
+<file href="scormcontent/assets/Firefly_Gemini%20Flash_Ass.jpg" />
+<file href="scormcontent/assets/Firefly_GeminiFlash_Making.jpg" />
+<file href="scormcontent/assets/LrolC6/Firefly_Gemini%20Flash_The.jpg" />
+<file href="scormcontent/assets/Edna-Cradberry%2C-a-64-yea.jpg" />
+<file href="scormcontent/assets/d1re6i/hotel.jpg" />
+<file href="scormcontent/assets/tzQvX2/Firefly_Gemini%20Flash_The.jpg" />
+<file href="scormcontent/assets/76c2e2c5-6134-4675-b741-4d.mp3" />
+<file href="scormcontent/assets/never-forget-.jpg" />
+<file href="scormcontent/assets/1dY3Ko/never-forget-.jpg" />
+<file href="scormcontent/assets/rIHgB4/never-forget-.jpg" />
+<file href="scormcontent/assets/XYlvOL/never-forget-.jpg" />
+<file href="scormcontent/assets/WVhHJc/never-forget-.jpg" />
+<file href="scormcontent/assets/stock-image.jpg" />
+<file href="scormcontent/assets/DziYs8hAW-oliYKb_350_full.png" />
+<file href="scormcontent/assets/KF1porIeeDlJv1Cr_321_full.png" />
+<file href="scormcontent/assets/XQ6LBqPrMDRh3GvR_332_full.png" />
+<file href="scormcontent/assets/cqhRcMVHJAyZ95ks_335_full.png" />
+<file href="scormcontent/assets/MwPVqbIiWpcpaUb3_326_full.png" />
+<file href="scormcontent/assets/kkE8O80ZyBJpjSSn_328_full.png" />
+<file href="scormcontent/assets/g97KjOKeKMyrELni_343_full.png" />
+<file href="scormcontent/assets/comyLOfYR2Rm5Tae_337_full.png" />
+<file href="scormcontent/assets/rW83kxLwSfE_qUyB_346_full.png" />
+<file href="scormcontent/assets/QSbOxb6zvgHUtjLe_323_full.png" />
+<file href="scormcontent/assets/6CHWAdXajRJjl_Gl_325_full.png" />
+<file href="scormcontent/assets/IhqW3KTayiY0LSnO_340_full.png" />
+
+    </resource>
+  </resources>
+</manifest>
