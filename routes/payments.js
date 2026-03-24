@@ -73,6 +73,7 @@ router.get('/enrolled/:userId', async (req, res) => {
           ...course.toObject(),
           enrolledAt: enrollment.enrolledAt,
           progress: enrollment.progress,
+          totalTime: enrollment.totalTime || 0,
         };
       })
     );
@@ -140,7 +141,7 @@ router.get('/suspend/:userId/:courseId', async (req, res) => {
  */
 router.patch('/suspend', async (req, res) => {
   try {
-    const { userId, courseId, suspendData, lessonLocation, status } = req.body;
+    const { userId, courseId, suspendData, lessonLocation, status, sessionTime } = req.body;
     
     // First, get the current enrollment status to implement protection
     const userForCheck = await User.findById(userId);
@@ -152,6 +153,11 @@ router.patch('/suspend', async (req, res) => {
     const updateFields = {};
     if (suspendData !== undefined) updateFields['enrolledCourses.$.suspendData'] = suspendData;
     if (lessonLocation !== undefined) updateFields['enrolledCourses.$.lessonLocation'] = lessonLocation;
+    
+    const incFields = {};
+    if (sessionTime !== undefined && !isNaN(sessionTime)) {
+      incFields['enrolledCourses.$.totalTime'] = Number(sessionTime);
+    }
     
     // Status protection logic
     const newStatus = status?.toLowerCase();
@@ -173,7 +179,10 @@ router.patch('/suspend', async (req, res) => {
 
     const updatedUser = await User.findOneAndUpdate(
       { _id: userId, 'enrolledCourses.courseId': courseId },
-      { $set: updateFields },
+      { 
+        $set: updateFields,
+        $inc: incFields 
+      },
       { new: true }
     );
 

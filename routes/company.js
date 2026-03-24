@@ -21,7 +21,8 @@ router.get('/students/:companyId', async (req, res) => {
         return {
           title: course ? course.title : 'Unknown Course',
           progress: enrollment.progress,
-          enrolledAt: enrollment.enrolledAt
+          enrolledAt: enrollment.enrolledAt,
+          totalTime: enrollment.totalTime || 0
         };
       }));
       

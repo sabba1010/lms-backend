@@ -19,6 +19,7 @@ const UserSchema = new mongoose.Schema({
       status: { type: String, default: 'incomplete' },
       suspendData: { type: String, default: '' },
       lessonLocation: { type: String, default: '' },
+      totalTime: { type: Number, default: 0 }, // Total time spent in seconds
     },
   ],
   companyId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },

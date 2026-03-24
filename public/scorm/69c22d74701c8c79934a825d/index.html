@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8" />
+<title>Digital Marketing Course</title>
+<style>
+body { margin:0; font-family: Inter, sans-serif; background:#0f172a; color:white;}
+.app { display:flex; height:100vh;}
+.sidebar { width:260px; background:#020617; padding:20px;}
+.lesson { padding:10px; cursor:pointer; border-radius:8px; margin-bottom:8px;}
+.lesson.active { background:#1e293b;}
+.main { flex:1; padding:40px;}
+.card { background:#1e293b; padding:30px; border-radius:16px;}
+.progress { height:8px; background:#334155; border-radius:10px; overflow:hidden; margin-top:20px;}
+.bar { height:100%; width:0%; background:linear-gradient(to right,#3b82f6,#06b6d4);}
+button { margin-top:20px; padding:10px 20px; border:none; border-radius:8px; background:#3b82f6; color:white; cursor:pointer;}
+</style>
+
+<script>
+let progress = 0;
+let currentLesson = 0;
+
+const lessons = [
+  "Intro to Digital Marketing",
+  "SEO Basics",
+  "Social Media Marketing",
+  "Paid Ads Strategy",
+  "Email Marketing",
+  "Analytics & Tracking"
+];
+
+function initSCORM() {
+  if (window.API) {
+    API.LMSInitialize("");
+    const saved = API.LMSGetValue("cmi.suspend_data");
+    if (saved) {
+      const data = JSON.parse(saved);
+      progress = data.progress || 0;
+      currentLesson = data.lesson || 0;
+    }
+  }
+  render();
+}
+
+function nextLesson() {
+  if (currentLesson < lessons.length - 1) {
+    currentLesson++;
+  }
+  progress = Math.round(((currentLesson+1)/lessons.length)*100);
+  save();
+  render();
+}
+
+function selectLesson(i) {
+  currentLesson = i;
+  progress = Math.round(((currentLesson+1)/lessons.length)*100);
+  save();
+  render();
+}
+
+function save() {
+  if (window.API) {
+    API.LMSSetValue("cmi.suspend_data", JSON.stringify({progress, lesson:currentLesson}));
+    API.LMSSetValue("cmi.core.lesson_status", progress === 100 ? "completed" : "incomplete");
+    API.LMSCommit("");
+  }
+}
+
+function render() {
+  const sidebar = document.getElementById("sidebar");
+  sidebar.innerHTML = "";
+  lessons.forEach((l,i)=>{
+    sidebar.innerHTML += `<div class="lesson ${i===currentLesson?'active':''}" onclick="selectLesson(${i})">${l}</div>`;
+  });
+
+  document.getElementById("content").innerHTML = `<h1>${lessons[currentLesson]}</h1>
+  <p>This lesson explains key concepts of ${lessons[currentLesson]}. Learn practical strategies used in real-world digital marketing campaigns.</p>
+  <button onclick="nextLesson()">Next Lesson</button>`;
+
+  document.getElementById("bar").style.width = progress+"%";
+  document.getElementById("percent").innerText = progress+"% Complete";
+}
+</script>
+</head>
+
+<body onload="initSCORM()">
+<div class="app">
+  <div class="sidebar">
+    <h2>Digital Marketing</h2>
+    <div id="sidebar"></div>
+  </div>
+  <div class="main">
+    <div class="card">
+      <div id="content"></div>
+      <div class="progress"><div id="bar" class="bar"></div></div>
+      <p id="percent">0%</p>
+    </div>
+  </div>
+</div>
+</body>
+</html>
