@@ -13,27 +13,45 @@ router.get('/students/:companyId', async (req, res) => {
       companyId: req.params.companyId,
       role: 'student'
     }).select('-password');
+
+    // Fetch all courses once to create a robust lookup map
+    const allCourses = await Course.find({}).select('title');
+    const courseLookup = {};
+    allCourses.forEach(c => {
+      courseLookup[c._id.toString()] = c.title;
+      courseLookup[c.title] = c.title; // Also map title to itself for title-string enrollments
+    });
     
-    // Fetch course details for each student's enrolled courses
-    const studentsWithCourses = await Promise.all(students.map(async (student) => {
-      const enrolledWithDetails = await Promise.all(student.enrolledCourses.map(async (enrollment) => {
-        const course = await Course.findById(enrollment.courseId).select('title');
-        return {
-          title: course ? course.title : 'Unknown Course',
-          progress: enrollment.progress,
-          enrolledAt: enrollment.enrolledAt,
-          totalTime: enrollment.totalTime || 0
-        };
-      }));
+    // Map to a cleaner format for the frontend
+    const studentsWithCourses = students.map((student) => {
+      const studentObj = student.toObject();
+      const courseMap = new Map();
       
-      return {
-        ...student.toObject(),
-        courses: enrolledWithDetails
-      };
-    }));
+      (studentObj.enrolledCourses || []).forEach((enrollment) => {
+        const rawId = enrollment.courseId ? enrollment.courseId.toString() : null;
+        const matchingTitle = courseLookup[rawId];
+        
+        if (matchingTitle) {
+          // De-duplicate by title or ID
+          if (!courseMap.has(matchingTitle)) {
+            courseMap.set(matchingTitle, {
+              title: matchingTitle,
+              progress: enrollment.progress || 0,
+              enrolledAt: enrollment.enrolledAt,
+              totalTime: enrollment.totalTime || 0
+            });
+          }
+        }
+      });
+
+      studentObj.courses = Array.from(courseMap.values());
+      delete studentObj.enrolledCourses;
+      return studentObj;
+    });
 
     res.json(studentsWithCourses);
   } catch (err) {
+    console.error('Fetch student error:', err);
     res.status(500).json({ error: 'Server error' });
   }
 });
