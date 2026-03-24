@@ -1,0 +1,16 @@
+
+body{margin:0;font-family:Inter,Arial;background:#f4f7fb;color:#1e293b;}
+.app{display:flex;height:100vh;}
+.sidebar{width:300px;background:#fff;border-right:1px solid #e5e7eb;padding:20px;overflow:auto;}
+.module{margin-bottom:16px;}
+.module-title{font-weight:700;margin-bottom:8px;color:#64748b;font-size:12px;text-transform:uppercase;}
+.lesson{padding:10px;border-radius:8px;margin-bottom:6px;background:#f1f5f9;cursor:pointer;}
+.lesson.active{background:#38bdf8;color:#fff;}
+.main{flex:1;display:flex;flex-direction:column;}
+.header{padding:16px 24px;border-bottom:1px solid #e5e7eb;background:#fff;display:flex;justify-content:space-between;}
+.content{flex:1;padding:32px;overflow:auto;}
+.card{background:#fff;border-radius:14px;padding:28px;box-shadow:0 10px 25px rgba(0,0,0,0.05);}
+.progress-wrap{padding:12px 24px;background:#fff;border-top:1px solid #e5e7eb;}
+.bar{height:6px;background:#e2e8f0;border-radius:6px;overflow:hidden;}
+.fill{height:6px;background:#38bdf8;width:0%;}
+button{margin-top:16px;padding:10px 18px;border:none;border-radius:8px;background:#38bdf8;color:#fff;cursor:pointer;}
