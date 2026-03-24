@@ -40,7 +40,7 @@ app.use(morgan('dev'));
 connectDB();
 
 // ── Serve extracted SCORM packages as static files ──────────────────────────
-// Access via: https://lms-backend-rosy-two.vercel.app/scorm/<courseId>/index.html
+// Access via: https://lms-backend-txu9.onrender.com/scorm/<courseId>/index.html
 app.use('/scorm', express.static(path.join(__dirname, 'public', 'scorm')));
 
 // ── API Routes ───────────────────────────────────────────────────────────────
