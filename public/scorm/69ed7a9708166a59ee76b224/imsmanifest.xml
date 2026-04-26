@@ -1,0 +1,181 @@
+<?xml version="1.0" ?>
+<manifest identifier="Qz53oTMzBMfuNkRvYndT0Sq0qK2ajJ5L0BsxXASK" version="1"
+  xmlns="http://www.imsproject.org/xsd/imscp_rootv1p1p2"
+  xmlns:adlcp="http://www.adlnet.org/xsd/adlcp_rootv1p2"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.imsproject.org/xsd/imscp_rootv1p1p2 imscp_rootv1p1p2.xsd
+                      http://www.adlnet.org/xsd/adlcp_rootv1p2 adlcp_rootv1p2.xsd">
+  <metadata>
+    <schema>ADL SCORM</schema>
+    <schemaversion>1.2</schemaversion>
+    <adlcp:location>metadata.xml</adlcp:location> 
+  </metadata>
+  <organizations default="articulate_rise">
+      <organization identifier="articulate_rise">
+      <title>Safeguarding Children (Pt. 1): Trauma-Informed and Therapeutic Practice – Foundations and Response</title>
+      <item identifier="i1" identifierref="r1" isvisible="true">
+        <title>Safeguarding Children (Pt. 1): Trauma-Informed and Therapeutic Practice – Foundations and Response</title>
+      </item>
+    </organization>
+  </organizations>
+  <resources>
+    <resource identifier="r1" type="webcontent" adlcp:scormtype="sco" href="scormdriver/indexAPI.html">
+      <!-- SCORMDRIVER STUFF -->
+      <file href="scormdriver/indexAPI.html" />
+      <file href="scormdriver/preloadIntegrity.js" />
+      <file href="scormdriver/driverOptions.js" />
+      <file href="scormdriver/AICCComm.html" />
+      <file href="scormdriver/auto-scripts/AutoBookmark.js" />
+      <file href="scormdriver/auto-scripts/AutoCompleteSCO.js" />
+      <file href="scormdriver/auto-scripts/CourseExit.js" />
+      <file href="scormdriver/blank.html" />
+      <file href="scormdriver/goodbye.html" />
+      <file href="scormdriver/scormdriver.js" />
+      <file href="scormdriver/browsersniff.js" />
+
+      <!-- RUNTIME COMMON STUFF -->
+      <file href="scormcontent/index.html" />
+
+      
+        <file href="scormcontent/lib/lzwcompress.js"/>
+      
+
+      <!-- FRONTEND BUNDLE ASSETS -->
+      <file href="scormcontent/lib/rise/4669676f.js" />
+<file href="scormcontent/lib/rise/220a9314.css" />
+<file href="scormcontent/lib/rise/90bc6ac0.js" />
+<file href="scormcontent/lib/rise/79a1f260.css" />
+<file href="scormcontent/lib/rise/3622c7f3.js" />
+<file href="scormcontent/lib/rise/9aede266.ttf" />
+<file href="scormcontent/lib/rise/bff47411.woff" />
+<file href="scormcontent/lib/rise/ca69a9b5.js" />
+<file href="scormcontent/lib/rise/587a1be7.js" />
+<file href="scormcontent/lib/rise/61243a87.js" />
+<file href="scormcontent/lib/rise/76830a3e.js" />
+<file href="scormcontent/lib/rise/3125981b.js" />
+<file href="scormcontent/lib/rise/077fcf07.js" />
+<file href="scormcontent/lib/rise/641ea9f0.js" />
+<file href="scormcontent/lib/rise/d4f1495e.js" />
+<file href="scormcontent/lib/rise/f50b75a0.js" />
+<file href="scormcontent/lib/rise/64c13194.js" />
+<file href="scormcontent/lib/rise/d4534cdf.js" />
+<file href="scormcontent/lib/rise/578ab21f.js" />
+<file href="scormcontent/lib/rise/90f65467.js" />
+<file href="scormcontent/lib/rise/2d62667c.js" />
+<file href="scormcontent/lib/rise/54010a1a.js" />
+<file href="scormcontent/lib/rise/8716f7be.js" />
+<file href="scormcontent/lib/rise/d878a260.js" />
+<file href="scormcontent/lib/rise/61c7bf33.js" />
+<file href="scormcontent/lib/rise/26eb66fd.js" />
+<file href="scormcontent/lib/learn_dist/entry.js" />
+<file href="scormcontent/lib/learn_dist/9b1f8619.js" />
+<file href="scormcontent/lib/learn_dist/fd678823.css" />
+<file href="scormcontent/lib/learn_dist/9546abb5.js" />
+<file href="scormcontent/lib/mondrian/entry.js" />
+<file href="scormcontent/lib/mondrian/651f6318.js" />
+<file href="scormcontent/lib/mondrian/afbb5ca8.js" />
+<file href="scormcontent/lib/mondrian/5e5f4cf5.js" />
+<file href="scormcontent/lib/mondrian/09e37aee.js" />
+<file href="scormcontent/lib/mondrian/196251cf.js" />
+<file href="scormcontent/lib/sandbox/sandbox.html" />
+<file href="scormcontent/lib/sandbox/c77685df.js" />
+<file href="scormcontent/lib/sandbox/4adfab46.css" />
+
+
+      <!-- RUNTIME CONTENT STUFF -->
+      <file href="scormcontent/lib/fonts/Lato2-Italic.woff" />
+<file href="scormcontent/lib/fonts/Lato2-Light.woff" />
+<file href="scormcontent/lib/fonts/Lato2-Regular.woff" />
+<file href="scormcontent/lib/fonts/Lato2-Black.woff" />
+<file href="scormcontent/lib/fonts/Lato2-Bold.woff" />
+<file href="scormcontent/lib/fonts/Merriweather-Light.woff" />
+<file href="scormcontent/lib/fonts/Merriweather-Regular.woff" />
+<file href="scormcontent/lib/fonts/Merriweather-Bold.woff" />
+<file href="scormcontent/lib/fonts/Merriweather-Italic.woff" />
+<file href="scormcontent/lib/fonts/Merriweather-Black.woff" />
+<file href="scormcontent/assets/small.png" />
+<file href="scormcontent/assets/wY_XV3z6UbR4kBKE.jpg" />
+<file href="scormcontent/assets/Key-Safeguarding-Terms-and.jpg" />
+<file href="scormcontent/assets/HSO6la/mountains.jpg" />
+<file href="scormcontent/assets/Legal-Foundations-.jpg" />
+<file href="scormcontent/assets/Legal-Foundations-of-Safeg.jpg" />
+<file href="scormcontent/assets/X-%E2%80%9CThe%20Rules%20T.mp4" />
+<file href="scormcontent/assets/X-%E2%80%9CThe%20Rules%20T.jpg" />
+<file href="scormcontent/assets/ai-captions-1776428239449.vtt" />
+<file href="scormcontent/assets/Reflective-Question-for-St.jpg" />
+<file href="scormcontent/assets/The-Rules-That-Keep-Me-Saf.jpg" />
+<file href="scormcontent/assets/Children-Act-1989-%28as-am.jpg" />
+<file href="scormcontent/assets/Protection-of-Children-Act.jpg" />
+<file href="scormcontent/assets/Care-Standards-Act-2000.jpg" />
+<file href="scormcontent/assets/Working-Together-to-Safegu.jpg" />
+<file href="scormcontent/assets/Mental-Capacity-Act-2005.jpg" />
+<file href="scormcontent/assets/Health-and-Social-Care-Act.jpg" />
+<file href="scormcontent/assets/Equality-Act-2010.jpg" />
+<file href="scormcontent/assets/Education-Act-2011.jpg" />
+<file href="scormcontent/assets/Children%E2%80%99s-Homes-.jpg" />
+<file href="scormcontent/assets/Social-Care-Common-Inspect.jpg" />
+<file href="scormcontent/assets/United-Nations-Convention-.jpg" />
+<file href="scormcontent/assets/Children-and-Social-Work-A.jpg" />
+<file href="scormcontent/assets/X--UK-GDPR.jpg" />
+<file href="scormcontent/assets/Counter-Terrorism-and-Secu.jpg" />
+<file href="scormcontent/assets/S-Offences-Act-2003.jpg" />
+<file href="scormcontent/assets/Human-Rights-Act-1998.jpg" />
+<file href="scormcontent/assets/Duty-of-care.jpg" />
+<file href="scormcontent/assets/The-Relational-Impact-of-S.jpg" />
+<file href="scormcontent/assets/Who%E2%80%99s-Responsible_.jpg" />
+<file href="scormcontent/assets/Frontline-staff-.jpg" />
+<file href="scormcontent/assets/X-%E2%80%9CWhen%20You%20Sh.mp4" />
+<file href="scormcontent/assets/X-%E2%80%9CWhen%20You%20Sh.jpg" />
+<file href="scormcontent/assets/Childrens-Home-.jpg" />
+<file href="scormcontent/assets/generated-image.jpg" />
+<file href="scormcontent/assets/SAD-CHILD-.jpg" />
+<file href="scormcontent/assets/SAD-CHILD.jpg" />
+<file href="scormcontent/assets/56VrIB/SAD-CHILD.jpg" />
+<file href="scormcontent/assets/Neglect.jpg" />
+<file href="scormcontent/assets/w9iZ4k/Neglect.jpg" />
+<file href="scormcontent/assets/X--Criminal-.jpg" />
+<file href="scormcontent/assets/Honour-Based.jpg" />
+<file href="scormcontent/assets/Dhzy9w/SAD-CHILD-.jpg" />
+<file href="scormcontent/assets/l7qQDp/generated-image.jpg" />
+<file href="scormcontent/assets/IMG_1543.mp4" />
+<file href="scormcontent/assets/IMG_1543.jpg" />
+<file href="scormcontent/assets/ai-captions-1776449875120.vtt" />
+<file href="scormcontent/assets/5IJbX-/generated-image.jpg" />
+<file href="scormcontent/assets/SAD-CHILDREN-.jpg" />
+<file href="scormcontent/assets/CHILD-Communication.jpg" />
+<file href="scormcontent/assets/SAD-HOME-.jpg" />
+<file href="scormcontent/assets/Distress-abstarct-.jpg" />
+<file href="scormcontent/assets/Professional-Curiosity-in-.jpg" />
+<file href="scormcontent/assets/Qcexhl/generated-image.jpg" />
+<file href="scormcontent/assets/X-%E2%80%9CWhy%20My%20Reac.mp4" />
+<file href="scormcontent/assets/X-%E2%80%9CWhy%20My%20Reac.jpg" />
+<file href="scormcontent/assets/ai-captions-1776783113293.vtt" />
+<file href="scormcontent/assets/ChatGPT%20Image%20Apr%2022.jpg" />
+<file href="scormcontent/assets/X-%E2%80%9CWhy%20My%20Brai.mp4" />
+<file href="scormcontent/assets/X-%E2%80%9CWhy%20My%20Brai.jpg" />
+<file href="scormcontent/assets/ai-captions-1776790586478.vtt" />
+<file href="scormcontent/assets/cRLDME/ChatGPT%20Image%20Apr%2022.jpg" />
+<file href="scormcontent/assets/X-%E2%80%9CWhy%20I%20Fight.mp4" />
+<file href="scormcontent/assets/X-%E2%80%9CWhy%20I%20Fight.jpg" />
+<file href="scormcontent/assets/ai-captions-1776850872727.vtt" />
+<file href="scormcontent/assets/9LsLOP/generated-image.jpg" />
+<file href="scormcontent/assets/X-%E2%80%9CIntroduction%20.mp4" />
+<file href="scormcontent/assets/X-%E2%80%9CIntroduction%20.jpg" />
+<file href="scormcontent/assets/ai-captions-1776859846794.vtt" />
+<file href="scormcontent/assets/K__EAT/Introduction-to-the-Stress.jpg" />
+<file href="scormcontent/assets/Trauma.jpg" />
+<file href="scormcontent/assets/X-%E2%80%9CRecognising%20S.mp4" />
+<file href="scormcontent/assets/X-%E2%80%9CRecognising%20S.jpg" />
+<file href="scormcontent/assets/ai-captions-1776867908465.vtt" />
+<file href="scormcontent/assets/Responces-.jpg" />
+<file href="scormcontent/assets/X-%E2%80%9CDistinguishing.mp4" />
+<file href="scormcontent/assets/X-%E2%80%9CDistinguishing.jpg" />
+<file href="scormcontent/assets/ai-captions-1776868702033.vtt" />
+<file href="scormcontent/assets/Video%20Title%20%E2%80%9CW.mp4" />
+<file href="scormcontent/assets/Video%20Title%20%E2%80%9CW.jpg" />
+<file href="scormcontent/assets/ai-captions-1776871196686.vtt" />
+<file href="scormcontent/assets/Why-Factual%2C-Timely-Reco.jpg" />
+
+    </resource>
+  </resources>
+</manifest>

@@ -103,10 +103,112 @@ router.post('/complete', async (req, res) => {
 });
 
 function findScormEntry(dir) {
-  const candidates = ['index.html', 'story.html', 'story_html5.html', 'scormcontent/index.html'];
-  for (const f of candidates) {
-    if (fs.existsSync(path.join(dir, f))) return f;
+  let manifestPath = path.join(dir, 'imsmanifest.xml');
+  let baseDir = dir;
+
+  // 1. Check if imsmanifest.xml is inside a single subfolder (common zip mistake)
+  if (!fs.existsSync(manifestPath)) {
+    try {
+      const items = fs.readdirSync(dir);
+      const subDirs = items.filter(item => {
+        try { return fs.statSync(path.join(dir, item)).isDirectory(); } catch (e) { return false; }
+      });
+      if (subDirs.length === 1) {
+        const subDirPath = path.join(dir, subDirs[0]);
+        const subManifestPath = path.join(subDirPath, 'imsmanifest.xml');
+        if (fs.existsSync(subManifestPath)) {
+          manifestPath = subManifestPath;
+          baseDir = subDirPath;
+        }
+      }
+    } catch (e) {}
   }
+
+  let entryPoint = null;
+
+  // 2. Parse manifest if found
+  if (fs.existsSync(manifestPath)) {
+    try {
+      const manifestContent = fs.readFileSync(manifestPath, 'utf8');
+      const resourceRegex = /<resource[^>]*href=["']([^"']+)["'][^>]*>/gi;
+      let match;
+      let scoHref = null;
+      let firstHref = null;
+
+      while ((match = resourceRegex.exec(manifestContent)) !== null) {
+        const fullTag = match[0];
+        const href = match[1];
+
+        if (!firstHref) firstHref = href;
+        if (fullTag.toLowerCase().includes('scormtype="sco"') || fullTag.toLowerCase().includes("scormtype='sco'")) {
+          scoHref = href;
+          break;
+        }
+      }
+
+      let chosenHref = scoHref || firstHref;
+      if (chosenHref) {
+        chosenHref = chosenHref.replace(/&amp;/g, '&');
+        
+        if (baseDir !== dir) {
+           const subFolderName = path.basename(baseDir);
+           chosenHref = `${subFolderName}/${chosenHref}`;
+        }
+        
+        const cleanHref = chosenHref.split('?')[0].split('#')[0];
+        if (fs.existsSync(path.join(dir, cleanHref))) {
+          entryPoint = chosenHref;
+        }
+      }
+    } catch (err) {
+      console.error('Error reading imsmanifest.xml:', err);
+    }
+  }
+
+  if (entryPoint) return entryPoint.replace(/\\/g, '/');
+
+  // 3. Fallback candidates
+  const candidates = [
+    'index.html', 'story.html', 'story_html5.html', 
+    'scormcontent/index.html', 'res/index.html', 
+    'index_lms.html', 'indexAPI.html', 'scormdriver/indexAPI.html'
+  ];
+  
+  for (const f of candidates) {
+    if (fs.existsSync(path.join(dir, f))) return f.replace(/\\/g, '/');
+  }
+  
+  // 4. Subfolder fallbacks
+  if (baseDir !== dir) {
+    const subFolderName = path.basename(baseDir);
+    for (const f of candidates) {
+      const subPath = `${subFolderName}/${f}`;
+      if (fs.existsSync(path.join(dir, subPath.split('?')[0]))) return subPath.replace(/\\/g, '/');
+    }
+  }
+
+  // 5. Any .html file recursive search
+  try {
+    const findHtmlRecursively = (currentDir, relativePath = '') => {
+      const items = fs.readdirSync(currentDir);
+      for (const item of items) {
+        const fullPath = path.join(currentDir, item);
+        const itemRelative = relativePath ? `${relativePath}/${item}` : item;
+        const stat = fs.statSync(fullPath);
+        if (stat.isDirectory()) {
+          const res = findHtmlRecursively(fullPath, itemRelative);
+          if (res) return res;
+        } else if (item.toLowerCase().endsWith('.html') || item.toLowerCase().endsWith('.htm')) {
+          return itemRelative;
+        }
+      }
+      return null;
+    };
+    
+    const htmlFile = findHtmlRecursively(dir);
+    if (htmlFile) return htmlFile.replace(/\\/g, '/');
+  } catch(e) {}
+
   return 'index.html';
 }
 
