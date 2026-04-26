@@ -128,7 +128,8 @@ router.get('/suspend/:userId/:courseId', async (req, res) => {
     res.json({ 
       suspendData: enrollment.suspendData || '',
       lessonLocation: enrollment.lessonLocation || '',
-      status: enrollment.status || 'incomplete'
+      status: enrollment.status || 'incomplete',
+      progress: enrollment.progress || 0
     });
   } catch (err) {
     res.status(500).json({ error: 'Server error' });
@@ -137,11 +138,11 @@ router.get('/suspend/:userId/:courseId', async (req, res) => {
 
 /**
  * PATCH /api/payments/suspend
- * Body: { userId, courseId, suspendData, lessonLocation, status }
+ * Body: { userId, courseId, suspendData, lessonLocation, status, progress, sessionTime }
  */
 router.patch('/suspend', async (req, res) => {
   try {
-    const { userId, courseId, suspendData, lessonLocation, status, sessionTime } = req.body;
+    const { userId, courseId, suspendData, lessonLocation, status, sessionTime, progress } = req.body;
     
     // First, get the current enrollment status to implement protection
     const userForCheck = await User.findById(userId);
@@ -154,6 +155,17 @@ router.patch('/suspend', async (req, res) => {
     if (suspendData !== undefined) updateFields['enrolledCourses.$.suspendData'] = suspendData;
     if (lessonLocation !== undefined) updateFields['enrolledCourses.$.lessonLocation'] = lessonLocation;
     
+    // ── PROGRESS SAVE (the critical fix) ──────────────────────────────
+    if (progress !== undefined && !isNaN(Number(progress))) {
+      const newProgress = Math.min(100, Math.max(0, Math.round(Number(progress))));
+      // Never lower progress below what's already saved (protect against revert)
+      if (newProgress > (enrollment.progress || 0)) {
+        updateFields['enrolledCourses.$.progress'] = newProgress;
+        console.log(`[SCORM Progress] user=${userId} course=${courseId} progress=${newProgress}%`);
+      }
+    }
+    // ─────────────────────────────────────────────────────────────────
+
     const incFields = {};
     if (sessionTime !== undefined && !isNaN(sessionTime)) {
       incFields['enrolledCourses.$.totalTime'] = Number(sessionTime);
@@ -170,10 +182,11 @@ router.patch('/suspend', async (req, res) => {
         console.log(`[Atomic] Protected status for user ${userId}.`);
       } else {
         updateFields['enrolledCourses.$.status'] = status;
+        console.log(`[SCORM Status] user=${userId} course=${courseId} status=${status}`);
       }
     }
 
-    if (Object.keys(updateFields).length === 0) {
+    if (Object.keys(updateFields).length === 0 && Object.keys(incFields).length === 0) {
       return res.json({ message: 'No changes provided.' });
     }
 
@@ -188,10 +201,44 @@ router.patch('/suspend', async (req, res) => {
 
     if (!updatedUser) return res.status(404).json({ error: 'Update failed (user or enrollment not found).' });
 
-    res.json({ message: 'Bookmarking saved atomically.' });
+    res.json({ message: 'Saved.', progress: updateFields['enrolledCourses.$.progress'] ?? enrollment.progress });
   } catch (err) {
+    console.error('[SCORM Suspend Error]', err);
     res.status(500).json({ error: 'Server error' });
   }
 });
 
+/**
+ * POST /api/payments/debug-scorm
+ * Logs ALL SCORM data sent from the player — for debugging purposes.
+ * Remove this after the issue is confirmed fixed.
+ */
+router.post('/debug-scorm', (req, res) => {
+  const body = req.body;
+  console.log('\n========= SCORM DEBUG PAYLOAD =========');
+  console.log('userId     :', body.userId);
+  console.log('courseId   :', body.courseId);
+  console.log('status     :', body.status);
+  console.log('progress   :', body.progress);
+  console.log('lessonLoc  :', body.lessonLocation);
+  console.log('sessionTime:', body.sessionTime);
+  if (body.suspendData) {
+    const sd = body.suspendData;
+    console.log('suspendData (raw, first 500 chars):', sd.substring(0, 500));
+    // Try to parse as JSON and show structure
+    try {
+      const parsed = JSON.parse(sd);
+      console.log('suspendData (parsed JSON keys):', Object.keys(parsed));
+      console.log('suspendData (full parsed):', JSON.stringify(parsed, null, 2).substring(0, 1000));
+    } catch (e) {
+      console.log('suspendData is NOT JSON. Raw value shown above.');
+    }
+  } else {
+    console.log('suspendData: (empty)');
+  }
+  console.log('=======================================\n');
+  res.json({ received: true, progress: body.progress, suspendDataLength: body.suspendData?.length || 0 });
+});
+
 module.exports = router;
+
