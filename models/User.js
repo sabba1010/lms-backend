@@ -16,6 +16,7 @@ const UserSchema = new mongoose.Schema({
       courseId: { type: mongoose.Schema.Types.ObjectId, ref: 'Course' },
       enrolledAt: { type: Date, default: Date.now },
       progress: { type: Number, default: 0 },
+      score: { type: Number, default: null },    // Quiz score (0-100)
       status: { type: String, default: 'incomplete' },
       suspendData: { type: String, default: '' },
       lessonLocation: { type: String, default: '' },

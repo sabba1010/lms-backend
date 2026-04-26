@@ -164,7 +164,16 @@ router.patch('/suspend', async (req, res) => {
         console.log(`[SCORM Progress] user=${userId} course=${courseId} progress=${newProgress}%`);
       }
     }
+
+    // ── SCORE SAVE (quiz score from cmi.core.score.raw) ───────────────
+    const { score } = req.body;
+    if (score !== undefined && score !== null && score !== '' && !isNaN(Number(score))) {
+      const newScore = Math.min(100, Math.max(0, Math.round(Number(score))));
+      updateFields['enrolledCourses.$.score'] = newScore;
+      console.log(`[SCORM Score] user=${userId} course=${courseId} score=${newScore}%`);
+    }
     // ─────────────────────────────────────────────────────────────────
+
 
     const incFields = {};
     if (sessionTime !== undefined && !isNaN(sessionTime)) {
@@ -208,6 +217,8 @@ router.patch('/suspend', async (req, res) => {
   }
 });
 
+let lastDebugPayload = null;
+
 /**
  * POST /api/payments/debug-scorm
  * Logs ALL SCORM data sent from the player — for debugging purposes.
@@ -215,6 +226,7 @@ router.patch('/suspend', async (req, res) => {
  */
 router.post('/debug-scorm', (req, res) => {
   const body = req.body;
+  lastDebugPayload = body;
   console.log('\n========= SCORM DEBUG PAYLOAD =========');
   console.log('userId     :', body.userId);
   console.log('courseId   :', body.courseId);
@@ -239,6 +251,11 @@ router.post('/debug-scorm', (req, res) => {
   console.log('=======================================\n');
   res.json({ received: true, progress: body.progress, suspendDataLength: body.suspendData?.length || 0 });
 });
+
+router.get('/debug-scorm', (req, res) => {
+  res.json(lastDebugPayload || { message: 'No debug data yet' });
+});
+
 
 module.exports = router;
 
