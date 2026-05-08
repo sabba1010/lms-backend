@@ -3,55 +3,105 @@ const router = express.Router();
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const os = require('os');
 const mongoose = require('mongoose');
+const { GridFSBucket } = require('mongodb');
 const AdmZip = require('adm-zip');
 const Course = require('../models/Course');
 const User = require('../models/User');
 
-// --- UPLOAD ---
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const dir = path.join(__dirname, '..', 'uploads');
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    cb(null, dir);
-  },
-  filename: (req, file, cb) => {
-    const safe = file.originalname.replace(/[^a-zA-Z0-9._-]/g, '_');
-    cb(null, safe);
-  },
+// --- GRIDFS SETUP ---
+let bucket;
+mongoose.connection.once('open', () => {
+  bucket = new GridFSBucket(mongoose.connection.getClient().db(mongoose.connection.name));
 });
-const upload = multer({ storage });
+
+// --- UPLOAD (MEMORY STORAGE) ---
+const upload = multer({ storage: multer.memoryStorage() });
 
 router.post('/upload', upload.single('scormFile'), async (req, res) => {
   try {
     const { courseId } = req.body;
     if (!req.file || !courseId) return res.status(400).json({ error: 'Missing data' });
+    
+    if (!bucket) return res.status(500).json({ error: 'Database not ready' });
 
-    const extractDir = path.join(__dirname, '..', 'public', 'scorm', courseId);
-    if (fs.existsSync(extractDir)) fs.rmSync(extractDir, { recursive: true, force: true });
-    fs.mkdirSync(extractDir, { recursive: true });
+    // Delete old SCORM file if exists
+    const existing = await mongoose.connection.collection('fs.files').findOne({ filename: `scorm_${courseId}` });
+    if (existing) {
+      await bucket.delete(existing._id);
+    }
 
-    const zip = new AdmZip(req.file.path);
-    zip.extractAllTo(extractDir, true);
+    // Save ZIP to GridFS
+    const uploadStream = bucket.openUploadStream(`scorm_${courseId}`);
+    uploadStream.write(req.file.buffer);
+    
+    await new Promise((resolve, reject) => {
+      uploadStream.end(() => resolve());
+      uploadStream.on('error', reject);
+    });
 
+    // Extract ZIP in memory and find entry point
+    const zip = new AdmZip(req.file.buffer);
+    const tempDir = path.join(os.tmpdir(), `scorm_${Date.now()}`);
+    fs.mkdirSync(tempDir, { recursive: true });
+    zip.extractAllTo(tempDir, true);
+
+    const entry = findScormEntry(tempDir);
+
+    // Update course
     const course = await Course.findById(courseId);
     if (course) {
       course.scormFileName = courseId;
       await course.save();
     }
 
-    fs.unlinkSync(req.file.path);
-    const entry = findScormEntry(extractDir);
+    // Cleanup temp dir
+    fs.rmSync(tempDir, { recursive: true, force: true });
+
     res.json({ entryPoint: `/scorm/${courseId}/${entry}` });
-  } catch (err) { res.status(500).json({ error: 'Upload failed' }); }
+  } catch (err) { 
+    console.error('Upload error:', err);
+    res.status(500).json({ error: 'Upload failed' }); 
+  }
 });
 
 // --- GET ENTRY ---
 router.get('/entry/:courseId', async (req, res) => {
-  const { courseId } = req.params;
-  const dir = path.join(__dirname, '..', 'public', 'scorm', courseId);
-  const entry = findScormEntry(dir);
-  res.json({ entryPoint: `/scorm/${courseId}/${entry}` });
+  try {
+    const { courseId } = req.params;
+    if (!bucket) return res.status(500).json({ error: 'Database not ready' });
+
+    // Download from GridFS
+    const files = await mongoose.connection.collection('fs.files').find({ filename: `scorm_${courseId}` }).toArray();
+    if (!files.length) return res.status(404).json({ error: 'SCORM file not found' });
+
+    const downloadStream = bucket.openDownloadStream(files[0]._id);
+    const chunks = [];
+    
+    await new Promise((resolve, reject) => {
+      downloadStream.on('data', chunk => chunks.push(chunk));
+      downloadStream.on('end', resolve);
+      downloadStream.on('error', reject);
+    });
+
+    const buffer = Buffer.concat(chunks);
+    const tempDir = path.join(os.tmpdir(), `scorm_read_${Date.now()}`);
+    fs.mkdirSync(tempDir, { recursive: true });
+
+    const zip = new AdmZip(buffer);
+    zip.extractAllTo(tempDir, true);
+
+    const entry = findScormEntry(tempDir);
+
+    // Cleanup
+    fs.rmSync(tempDir, { recursive: true, force: true });
+
+    res.json({ entryPoint: `/scorm/${courseId}/${entry}` });
+  } catch (err) { 
+    console.error('Entry error:', err);
+    res.status(500).json({ error: 'Failed to get entry' }); 
+  }
 });
 
 // --- SAVE SUSPEND (RESUME) ---
