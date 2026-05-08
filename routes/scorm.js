@@ -263,5 +263,3 @@ function findScormEntry(dir) {
 }
 
 module.exports = router;
-
-module.exports = router;
