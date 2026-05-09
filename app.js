@@ -26,13 +26,13 @@ app.use(
 
 // Allow local frontend to render backend-hosted scorm iframes
 app.use((req, res, next) => {
-  res.setHeader('Content-Security-Policy', "frame-ancestors 'self' http://localhost:3000 http://localhost:5173");
+  res.setHeader('Content-Security-Policy', "frame-ancestors 'self' http://localhost:3000 http://localhost:5173 http://104.250.128.20/");
   next();
 });
 
 app.use(
   cors({
-    origin: ['http://localhost:3000', 'http://localhost:5173'],
+    origin: ['http://localhost:3000', 'http://localhost:5173', 'http://104.250.128.20'],
     credentials: true,
   })
 );
