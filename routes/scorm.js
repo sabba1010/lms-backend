@@ -5,16 +5,9 @@ const path = require('path');
 const fs = require('fs');
 const os = require('os');
 const mongoose = require('mongoose');
-const { GridFSBucket } = require('mongodb');
 const AdmZip = require('adm-zip');
 const Course = require('../models/Course');
 const User = require('../models/User');
-
-// --- GRIDFS SETUP ---
-let bucket;
-mongoose.connection.once('open', () => {
-  bucket = new GridFSBucket(mongoose.connection.getClient().db(mongoose.connection.name));
-});
 
 // --- UPLOAD (MEMORY STORAGE) ---
 const upload = multer({ storage: multer.memoryStorage() });
@@ -23,46 +16,89 @@ router.post('/upload', upload.single('scormFile'), async (req, res) => {
   try {
     const { courseId } = req.body;
     if (!req.file || !courseId) return res.status(400).json({ error: 'Missing data' });
-    
-    if (!bucket) return res.status(500).json({ error: 'Database not ready' });
 
-    // Delete old SCORM file if exists
-    const existing = await mongoose.connection.collection('fs.files').findOne({ filename: `scorm_${courseId}` });
-    if (existing) {
-      await bucket.delete(existing._id);
-    }
+    console.log(`📤 Uploading SCORM for courseId: ${courseId}`);
 
-    // Save ZIP to GridFS
-    const uploadStream = bucket.openUploadStream(`scorm_${courseId}`);
-    uploadStream.write(req.file.buffer);
-    
-    await new Promise((resolve, reject) => {
-      uploadStream.end(() => resolve());
-      uploadStream.on('error', reject);
-    });
+    // Define paths
+    const scormDir = path.join(__dirname, '..', 'uploads', 'scorm', courseId);
+    const scormPath = `/uploads/scorm/${courseId}/`;
+    const tempZipPath = path.join(__dirname, '..', 'uploads', 'temp', `${courseId}_${Date.now()}.zip`);
 
-    // Extract ZIP in memory and find entry point
-    const zip = new AdmZip(req.file.buffer);
-    const tempDir = path.join(os.tmpdir(), `scorm_${Date.now()}`);
-    fs.mkdirSync(tempDir, { recursive: true });
-    zip.extractAllTo(tempDir, true);
+    // Ensure directories exist
+    fs.mkdirSync(path.dirname(tempZipPath), { recursive: true });
+    fs.mkdirSync(scormDir, { recursive: true });
 
-    const entry = findScormEntry(tempDir);
+    // Save ZIP temporarily
+    fs.writeFileSync(tempZipPath, req.file.buffer);
 
-    // Update course
-    const course = await Course.findById(courseId);
-    if (course) {
-      course.scormFileName = courseId;
+    try {
+      // Extract ZIP
+      const zip = new AdmZip(tempZipPath);
+      zip.extractAllTo(scormDir, true);
+      console.log(`✅ SCORM extracted to: ${scormDir}`);
+
+      // Validate: Check for imsmanifest.xml
+      const manifestPath = path.join(scormDir, 'imsmanifest.xml');
+      if (!fs.existsSync(manifestPath)) {
+        // Cleanup
+        fs.rmSync(scormDir, { recursive: true, force: true });
+        fs.unlinkSync(tempZipPath);
+        return res.status(400).json({ error: 'Invalid SCORM Package: imsmanifest.xml not found' });
+      }
+
+      // Detect launch file
+      const launchUrl = findScormLaunchFile(scormDir);
+      if (!launchUrl) {
+        // Cleanup
+        fs.rmSync(scormDir, { recursive: true, force: true });
+        fs.unlinkSync(tempZipPath);
+        return res.status(400).json({ error: 'Invalid SCORM Package: No launch file found' });
+      }
+
+      // Update course
+      const course = await Course.findById(courseId);
+      if (!course) {
+        // Cleanup
+        fs.rmSync(scormDir, { recursive: true, force: true });
+        fs.unlinkSync(tempZipPath);
+        return res.status(404).json({ error: 'Course not found' });
+      }
+
+      // Delete old SCORM if exists
+      if (course.isScormExtracted && course.scormPath) {
+        const oldDir = path.join(__dirname, '..', course.scormPath.replace('/uploads/', 'uploads/'));
+        if (fs.existsSync(oldDir)) {
+          fs.rmSync(oldDir, { recursive: true, force: true });
+        }
+      }
+
+      course.scormFileName = req.file.originalname;
+      course.scormPath = scormPath;
+      course.manifestPath = `${scormPath}imsmanifest.xml`;
+      course.launchUrl = `${scormPath}${launchUrl}`;
+      course.isScormExtracted = true;
       await course.save();
+
+      console.log(`✅ Course updated with SCORM: ${course.title}`);
+
+      // Optional: Delete the original ZIP
+      fs.unlinkSync(tempZipPath);
+
+      res.json({ 
+        message: 'SCORM uploaded and extracted successfully',
+        launchUrl: course.launchUrl,
+        manifestPath: course.manifestPath
+      });
+    } catch (extractErr) {
+      console.error('❌ Extraction error:', extractErr);
+      // Cleanup
+      if (fs.existsSync(scormDir)) fs.rmSync(scormDir, { recursive: true, force: true });
+      if (fs.existsSync(tempZipPath)) fs.unlinkSync(tempZipPath);
+      return res.status(500).json({ error: 'Extraction failed: ' + extractErr.message });
     }
-
-    // Cleanup temp dir
-    fs.rmSync(tempDir, { recursive: true, force: true });
-
-    res.json({ entryPoint: `/scorm/${courseId}/${entry}` });
   } catch (err) { 
-    console.error('Upload error:', err);
-    res.status(500).json({ error: 'Upload failed' }); 
+    console.error('❌ Upload error:', err.message);
+    res.status(500).json({ error: 'Upload failed: ' + err.message }); 
   }
 });
 
@@ -70,37 +106,22 @@ router.post('/upload', upload.single('scormFile'), async (req, res) => {
 router.get('/entry/:courseId', async (req, res) => {
   try {
     const { courseId } = req.params;
-    if (!bucket) return res.status(500).json({ error: 'Database not ready' });
+    const course = await Course.findById(courseId);
+    if (!course || !course.isScormExtracted || !course.launchUrl) {
+      return res.status(404).json({ error: 'SCORM not found or not extracted' });
+    }
 
-    // Download from GridFS
-    const files = await mongoose.connection.collection('fs.files').find({ filename: `scorm_${courseId}` }).toArray();
-    if (!files.length) return res.status(404).json({ error: 'SCORM file not found' });
+    let entryPoint = course.launchUrl;
+    const backendHost = process.env.BACKEND_URL || 'http://localhost:5000';
+    if (entryPoint.startsWith(backendHost)) {
+      entryPoint = entryPoint.replace(backendHost, '');
+    }
+    entryPoint = entryPoint.replace(/^https?:\/\/[\w.-]+(?::\d+)?/, '');
 
-    const downloadStream = bucket.openDownloadStream(files[0]._id);
-    const chunks = [];
-    
-    await new Promise((resolve, reject) => {
-      downloadStream.on('data', chunk => chunks.push(chunk));
-      downloadStream.on('end', resolve);
-      downloadStream.on('error', reject);
-    });
-
-    const buffer = Buffer.concat(chunks);
-    const tempDir = path.join(os.tmpdir(), `scorm_read_${Date.now()}`);
-    fs.mkdirSync(tempDir, { recursive: true });
-
-    const zip = new AdmZip(buffer);
-    zip.extractAllTo(tempDir, true);
-
-    const entry = findScormEntry(tempDir);
-
-    // Cleanup
-    fs.rmSync(tempDir, { recursive: true, force: true });
-
-    res.json({ entryPoint: `/scorm/${courseId}/${entry}` });
+    res.json({ entryPoint });
   } catch (err) { 
-    console.error('Entry error:', err);
-    res.status(500).json({ error: 'Failed to get entry' }); 
+    console.error('❌ Entry error:', err.message);
+    res.status(500).json({ error: 'Failed to get entry point' });
   }
 });
 
@@ -152,19 +173,19 @@ router.post('/complete', async (req, res) => {
   } catch (err) { res.status(500).json({ error: 'Failed' }); }
 });
 
-function findScormEntry(dir) {
-  let manifestPath = path.join(dir, 'imsmanifest.xml');
-  let baseDir = dir;
+function findScormLaunchFile(scormDir) {
+  let manifestPath = path.join(scormDir, 'imsmanifest.xml');
+  let baseDir = scormDir;
 
   // 1. Check if imsmanifest.xml is inside a single subfolder (common zip mistake)
   if (!fs.existsSync(manifestPath)) {
     try {
-      const items = fs.readdirSync(dir);
+      const items = fs.readdirSync(scormDir);
       const subDirs = items.filter(item => {
-        try { return fs.statSync(path.join(dir, item)).isDirectory(); } catch (e) { return false; }
+        try { return fs.statSync(path.join(scormDir, item)).isDirectory(); } catch (e) { return false; }
       });
       if (subDirs.length === 1) {
-        const subDirPath = path.join(dir, subDirs[0]);
+        const subDirPath = path.join(scormDir, subDirs[0]);
         const subManifestPath = path.join(subDirPath, 'imsmanifest.xml');
         if (fs.existsSync(subManifestPath)) {
           manifestPath = subManifestPath;
@@ -200,13 +221,13 @@ function findScormEntry(dir) {
       if (chosenHref) {
         chosenHref = chosenHref.replace(/&amp;/g, '&');
         
-        if (baseDir !== dir) {
+        if (baseDir !== scormDir) {
            const subFolderName = path.basename(baseDir);
            chosenHref = `${subFolderName}/${chosenHref}`;
         }
         
         const cleanHref = chosenHref.split('?')[0].split('#')[0];
-        if (fs.existsSync(path.join(dir, cleanHref))) {
+        if (fs.existsSync(path.join(scormDir, cleanHref))) {
           entryPoint = chosenHref;
         }
       }
@@ -221,19 +242,20 @@ function findScormEntry(dir) {
   const candidates = [
     'index.html', 'story.html', 'story_html5.html', 
     'scormcontent/index.html', 'res/index.html', 
-    'index_lms.html', 'indexAPI.html', 'scormdriver/indexAPI.html'
+    'index_lms.html', 'indexAPI.html', 'scormdriver/indexAPI.html',
+    'launch.html'
   ];
   
   for (const f of candidates) {
-    if (fs.existsSync(path.join(dir, f))) return f.replace(/\\/g, '/');
+    if (fs.existsSync(path.join(scormDir, f))) return f.replace(/\\/g, '/');
   }
   
   // 4. Subfolder fallbacks
-  if (baseDir !== dir) {
+  if (baseDir !== scormDir) {
     const subFolderName = path.basename(baseDir);
     for (const f of candidates) {
       const subPath = `${subFolderName}/${f}`;
-      if (fs.existsSync(path.join(dir, subPath.split('?')[0]))) return subPath.replace(/\\/g, '/');
+      if (fs.existsSync(path.join(scormDir, subPath.split('?')[0]))) return subPath.replace(/\\/g, '/');
     }
   }
 
@@ -255,11 +277,11 @@ function findScormEntry(dir) {
       return null;
     };
     
-    const htmlFile = findHtmlRecursively(dir);
+    const htmlFile = findHtmlRecursively(scormDir);
     if (htmlFile) return htmlFile.replace(/\\/g, '/');
   } catch(e) {}
 
-  return 'index.html';
+  return null; // No launch file found
 }
 
 module.exports = router;

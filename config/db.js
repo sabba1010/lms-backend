@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const connectDB = async () => {
   const defaultUri = 'mongodb://localhost:27017/clent11';
-  const uri = process.env.MONGO_URI || defaultUri;
+  const uri = process.env.MONGO_URI || process.env.MONGODB_URI || defaultUri;
 
   const connect = async (connectionString) => {
     await mongoose.connect(connectionString, {

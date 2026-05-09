@@ -15,6 +15,10 @@ const CourseSchema = new mongoose.Schema({
   category: { type: String, required: true },
   stock: { type: Number, default: 0 },
   scormFileName: { type: String },
+  scormPath: { type: String },
+  manifestPath: { type: String },
+  launchUrl: { type: String },
+  isScormExtracted: { type: Boolean, default: false },
   instructor: { type: String, default: 'Admin Instructor' },
   status: { type: String, default: 'published' },
   // isPublished controls visibility on the public website
