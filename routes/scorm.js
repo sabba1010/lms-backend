@@ -111,14 +111,10 @@ router.get('/entry/:courseId', async (req, res) => {
       return res.status(404).json({ error: 'SCORM not found or not extracted' });
     }
 
-    let entryPoint = course.launchUrl;
-    const backendHost = process.env.BACKEND_URL || 'http://104.250.128.20/api';
-    if (entryPoint.startsWith(backendHost)) {
-      entryPoint = entryPoint.replace(backendHost, '');
-    }
-    entryPoint = entryPoint.replace(/^https?:\/\/[\w.-]+(?::\d+)?/, '');
+    const backendUrl = process.env.BACKEND_URL || 'http://104.250.128.20:5000';
+    const fullEntryPoint = `${backendUrl}${course.launchUrl}`;
 
-    res.json({ entryPoint });
+    res.json({ entryPoint: fullEntryPoint });
   } catch (err) {
     console.error('❌ Entry error:', err.message);
     res.status(500).json({ error: 'Failed to get entry point' });
