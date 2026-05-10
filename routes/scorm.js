@@ -112,7 +112,7 @@ router.get('/entry/:courseId', async (req, res) => {
     }
 
     let entryPoint = course.launchUrl;
-    const backendHost = process.env.BACKEND_URL || 'http://localhost:5000';
+    const backendHost = process.env.BACKEND_URL || 'http://104.250.128.20/api';
     if (entryPoint.startsWith(backendHost)) {
       entryPoint = entryPoint.replace(backendHost, '');
     }

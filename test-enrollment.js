@@ -1,6 +1,6 @@
 // Test enrollment endpoint
 const testEnrollment = async () => {
-  const BASE_URL = 'http://localhost:5000';
+  const BASE_URL = 'http://104.250.128.20/api';
 
   try {
     // First get a user and course
