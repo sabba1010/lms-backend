@@ -84,7 +84,7 @@ router.post('/upload', upload.single('scormFile'), async (req, res) => {
       // Optional: Delete the original ZIP
       fs.unlinkSync(tempZipPath);
 
-      res.json({ 
+      res.json({
         message: 'SCORM uploaded and extracted successfully',
         launchUrl: course.launchUrl,
         manifestPath: course.manifestPath
@@ -96,9 +96,9 @@ router.post('/upload', upload.single('scormFile'), async (req, res) => {
       if (fs.existsSync(tempZipPath)) fs.unlinkSync(tempZipPath);
       return res.status(500).json({ error: 'Extraction failed: ' + extractErr.message });
     }
-  } catch (err) { 
+  } catch (err) {
     console.error('❌ Upload error:', err.message);
-    res.status(500).json({ error: 'Upload failed: ' + err.message }); 
+    res.status(500).json({ error: 'Upload failed: ' + err.message });
   }
 });
 
@@ -119,7 +119,7 @@ router.get('/entry/:courseId', async (req, res) => {
     entryPoint = entryPoint.replace(/^https?:\/\/[\w.-]+(?::\d+)?/, '');
 
     res.json({ entryPoint });
-  } catch (err) { 
+  } catch (err) {
     console.error('❌ Entry error:', err.message);
     res.status(500).json({ error: 'Failed to get entry point' });
   }
@@ -133,12 +133,12 @@ router.patch('/suspend', async (req, res) => {
 
     await User.findOneAndUpdate(
       { _id: userId, 'enrolledCourses.courseId': courseId },
-      { 
-        $set: { 
+      {
+        $set: {
           'enrolledCourses.$.suspendData': suspendData || '',
           'enrolledCourses.$.lessonLocation': lessonLocation || '',
           'enrolledCourses.$.status': status || 'incomplete'
-        } 
+        }
       }
     );
     res.json({ message: 'Saved' });
@@ -192,7 +192,7 @@ function findScormLaunchFile(scormDir) {
           baseDir = subDirPath;
         }
       }
-    } catch (e) {}
+    } catch (e) { }
   }
 
   let entryPoint = null;
@@ -220,12 +220,12 @@ function findScormLaunchFile(scormDir) {
       let chosenHref = scoHref || firstHref;
       if (chosenHref) {
         chosenHref = chosenHref.replace(/&amp;/g, '&');
-        
+
         if (baseDir !== scormDir) {
-           const subFolderName = path.basename(baseDir);
-           chosenHref = `${subFolderName}/${chosenHref}`;
+          const subFolderName = path.basename(baseDir);
+          chosenHref = `${subFolderName}/${chosenHref}`;
         }
-        
+
         const cleanHref = chosenHref.split('?')[0].split('#')[0];
         if (fs.existsSync(path.join(scormDir, cleanHref))) {
           entryPoint = chosenHref;
@@ -240,16 +240,16 @@ function findScormLaunchFile(scormDir) {
 
   // 3. Fallback candidates
   const candidates = [
-    'index.html', 'story.html', 'story_html5.html', 
-    'scormcontent/index.html', 'res/index.html', 
+    'index.html', 'story.html', 'story_html5.html',
+    'scormcontent/index.html', 'res/index.html',
     'index_lms.html', 'indexAPI.html', 'scormdriver/indexAPI.html',
     'launch.html'
   ];
-  
+
   for (const f of candidates) {
     if (fs.existsSync(path.join(scormDir, f))) return f.replace(/\\/g, '/');
   }
-  
+
   // 4. Subfolder fallbacks
   if (baseDir !== scormDir) {
     const subFolderName = path.basename(baseDir);
@@ -276,10 +276,10 @@ function findScormLaunchFile(scormDir) {
       }
       return null;
     };
-    
+
     const htmlFile = findHtmlRecursively(scormDir);
     if (htmlFile) return htmlFile.replace(/\\/g, '/');
-  } catch(e) {}
+  } catch (e) { }
 
   return null; // No launch file found
 }
